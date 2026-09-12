@@ -6,8 +6,9 @@ import { Shield, Menu, X, ChevronRight, Zap } from 'lucide-react';
 
 const NAV_LINKS = [
   { label: 'Features', href: '#features' },
-  { label: 'How It Works', href: '#how-it-works' },
-  { label: 'Pricing', href: '#pricing' },
+  { label: 'Pipeline', href: '#pipeline' },
+  { label: 'Security', href: '#security' },
+  { label: 'OWASP 2025', href: '#owasp' },
   { label: 'FAQ', href: '#faq' },
 ];
 

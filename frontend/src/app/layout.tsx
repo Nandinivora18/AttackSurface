@@ -3,13 +3,13 @@ import './globals.css';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
-  title: 'SentinelScan — Know Every Vulnerability Before Attackers Do',
+  title: 'SentinelScan — Passive Web Security & Attack Surface Assessment',
   description:
-    'Professional website security assessment platform. Analyze HTTP headers, SSL/TLS, DNS records, technology stack, and security posture in real-time.',
-  keywords: 'security scanner, website security, SSL check, security headers, vulnerability assessment',
+    'Passive web security and attack surface assessment platform. Non-destructive inspection of HTTP headers, SSL/TLS, DNS health, tech fingerprinting, and OWASP Top 10:2025 mapping.',
+  keywords: 'security scanner, attack surface, passive scanner, SSL check, security headers, OWASP 2025, vulnerability assessment',
   openGraph: {
-    title: 'SentinelScan',
-    description: 'Know Every Vulnerability Before Attackers Do',
+    title: 'SentinelScan — Know Your Attack Surface Before Attackers Do',
+    description: 'Passive web security and attack surface assessment platform.',
     type: 'website',
   },
 };
