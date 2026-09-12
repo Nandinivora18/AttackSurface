@@ -50,7 +50,7 @@ SentinelScan solves this by providing a **controlled, non-destructive hybrid ass
 | 🔑 **Secure Authentication** | Dual-token authentication with short-lived JWT access tokens and HttpOnly refresh cookies. |
 | 📊 **Security Scoring & Grading** | Computes normalized risk scores (0–100) and letter grades (A–F) based on finding severity. |
 | 📄 **Multi-Format Reporting** | Generates 16-section Executive/Technical PDF and JSON exports with sensitive data redaction. |
-| 📈 **Scan History & Trends** | Tracks security posture scores and finding distributions across sequential scans. |
+| 📜 **Scan History** | Tracks prior scan execution records, statuses, and generated reports across targets. |
 | 🔧 **Remediation Guidance** | Context-rich code and configuration snippets (Nginx, Apache, Express) for applicable findings. |
 
 ---
@@ -100,7 +100,7 @@ flowchart TD
 
     FastAPI --> SSRF
     SSRF -->|Validated| Redis
-    FastAPI -->|JWT & Session Validation| Redis
+    FastAPI -->|JWT & Token Blacklist Check| Redis
     FastAPI -->|Tenant Queries| Postgres
 
     Redis -->|Job Dequeue| Worker
@@ -138,17 +138,18 @@ For full threat analysis, see [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) and [
 
 ## 🎯 Detection Coverage
 
-SentinelScan includes **27 registered detectors** across 7 security categories:
+SentinelScan includes **37 registered detectors** across core security and OWASP assessment categories:
 
 | Category | Detectors | Primary Standards & References |
 |---|:---:|---|
 | **Security Headers** | 11 | RFC 6797 (HSTS), W3C CSP Level 3, RFC 7034 (XFO), OWASP ASVS 14.4, Server/Powered-By headers |
 | **SSL / TLS** | 6 | NIST SP 800-52r2, Mozilla TLS Guidelines, RFC 8446 (TLS 1.3) |
-| **DNS Security** | 5 | RFC 7208 (SPF missing/present), RFC 7489 (DMARC missing/weak policy), RFC 4033 (DNSSEC), RFC 5321 (MX) |
+| **DNS Security** | 4 | RFC 7208 (SPF missing/present), RFC 7489 (DMARC missing/weak policy), RFC 5321 (MX) |
 | **Technology Detection** | 2 | Framework, Web Server, CMS, and JavaScript library fingerprinting with version disclosure |
 | **Cookie Security** | 1 | RFC 6265, OWASP ASVS 3.4 (HttpOnly, Secure, SameSite) |
 | **CVE Correlation** | 1 | NIST NVD CVE database integration with CVSS scoring |
 | **Content Exposure** | 1 | Exposed `.env`, `.git/HEAD`, backup files, and soft-404 verification |
+| **OWASP Top 10 Assessment** | 11 | Dedicated assessment mechanisms covering OWASP Top 10:2025 categories (A01–A10) |
 
 ---
 
@@ -189,8 +190,8 @@ SentinelScan focuses on actionable, passive intelligence: **Scan → Detect → 
 
 #### 1. Clone Repository
 ```bash
-git clone https://github.com/Nandinivora18/SentinalScan.git
-cd SentinalScan
+git clone https://github.com/Nandinivora18/AttackSurface.git
+cd AttackSurface
 ```
 
 #### 2. Backend Setup
@@ -321,7 +322,7 @@ docker compose -f docker/docker-compose.prod.yml up --build -d
 
 ## 🧪 Testing & Validation
  
-SentinelScan maintains high test coverage across unit, security, false-positive regression, and integration suites (679 passing backend tests).
+SentinelScan maintains high test coverage across unit, security, false-positive regression, and integration suites (704 passing backend tests, 33 warnings).
  
 ```bash
 # Run the complete backend test suite (from backend/)
@@ -345,7 +346,7 @@ SentinelScan implements a hardened, defense-in-depth authentication architecture
 - **Email & Password Authentication**: Salted bcrypt password hashing with email verification flows.
 - **Google OAuth 2.0 Integration**: Single Sign-On via Google OAuth with automatic verified account provisioning.
 - **Dual-Token Architecture**: Short-lived JWT access tokens paired with `HttpOnly`, `SameSite=Lax`, `Secure` refresh cookies to prevent XSS-based credential theft.
-- **Immediate Token Revocation**: Redis-backed token blacklist invalidates sessions immediately on user logout.
+- **Immediate Token Revocation**: Redis-backed token blacklist invalidates tokens immediately on user logout.
 - **Rate-Limited Endpoints**: Authentication routes are throttled via `slowapi` to defend against automated brute-force and credential stuffing attacks.
 - **Tenant Authorization**: Database-level tenant isolation enforces strict ownership checks across all scan and report queries.
 
@@ -367,13 +368,13 @@ SentinelScan/
 │   │   ├── scanner/           # Modular security inspection detectors (37 detectors)
 │   │   ├── tasks/             # ARQ background task orchestrators
 │   │   └── utils/             # Security, SSRF (19 subnets), PDF, and SSE utilities
-│   ├── tests/                 # 36-module pytest suite (679 tests)
+│   ├── tests/                 # Backend pytest suite (704 passing tests)
 │   ├── requirements.txt       # Runtime dependencies
 │   └── requirements-dev.txt   # Testing and development dependencies
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── app/               # Next.js 14 App Router views (24 pages, Burgundy + Champagne theme)
+│   │   ├── app/               # Next.js 14 App Router pages and layouts
 │   │   ├── components/        # UI components, score rings, and charts
 │   │   ├── hooks/             # React hooks (useAuth, useScan, useSSE)
 │   │   └── store/             # Global client state management

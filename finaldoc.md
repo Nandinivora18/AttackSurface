@@ -1,9 +1,10 @@
 # SentinelScan
 ## Complete Technical Project Documentation
 
-> **Document Status:** Authoritative Master Technical Documentation  
-> **Repository Baseline:** Current Cleaned Architecture (10 Unused Features Retired)  
-> **Verification Status:** 679/679 Automated Backend Tests Passing (Documented Validation Run) | Next.js 14 Production Build Clean (20/20 Routes Prerendered in Observed Build) | Alembic Schema Synchronized (`7340c9ab6be5`)  
+> **Document Status:** Authoritative Master Technical Documentation<br>
+> **Repository Baseline:** Current Cleaned Architecture (10 Unused Features Retired)<br>
+> **Verification Status:** 704/704 Automated Backend Tests Passing (33 warnings, documented validation run) | Next.js 14 Production Build Clean (20/20 Routes Prerendered in Observed Build) | GitHub Actions CI Passing (3/3 Jobs) | Alembic Schema Synchronized (`7340c9ab6be5`)<br>
+> **Repository:** https://github.com/Nandinivora18/AttackSurface (Branch: `main`)<br>
 > **Last Audited:** September 2026
 
 ---
@@ -100,6 +101,13 @@ SentinelScan was selected because web applications expose multiple security laye
 ### Elevator Pitch
 > *"SentinelScan is a full-stack, passive-first web security scanner that inspects external attack surfaces, identifies cryptographic and configuration misconfigurations, correlates outdated software components with live CVE and End-of-Life databases, and produces executive and technical PDF reports with finding-level remediation guidance—designed to minimize target impact through passive analysis and controlled non-destructive probing."*
 
+### Repository Identity & Publication Baseline
+- **Canonical GitHub Repository**: [https://github.com/Nandinivora18/AttackSurface](https://github.com/Nandinivora18/AttackSurface)
+- **Primary Branch**: `main`
+- **Publication Baseline**: The complete SentinelScan project source tree (FastAPI backend, Next.js 14 frontend, 37-detector scanning engine, 704 passing tests, Alembic migrations, ReportLab PDF generation, Docker/Nginx assets, and authoritative documentation) is published directly at the repository root.
+- **Repository Safety & Hygiene**: Published with verified exclusion of sensitive environment files (`.env`, `.env.local`), real credentials, API keys, private keys, virtual environments (`.venv`), Node dependencies (`node_modules`), local SQLite runtime databases (`*.db`), and transient build/test caches.
+- **Continuous Integration**: Monitored via a multi-job GitHub Actions CI workflow covering backend Pytest suites, frontend TypeScript checking, Next.js production builds, and repository secret safety checks.
+
 ### Security Assessment Philosophy
 1. **Safety First (Non-Destructive)**: The scanner does not perform destructive exploitation or attempt to retrieve data through SQL/command injection; its active probes are designed as controlled, non-destructive checks avoiding denial of service.
 2. **Fail-Closed Perimeter Guarding**: The scanner treats its own outbound requests as potential vectors for Server-Side Request Forgery (SSRF) and terminates invalid or private-range resolutions before socket connection.
@@ -123,7 +131,7 @@ SentinelScan provides tangible security, operational, and educational value acro
   Helps security evaluators and website owners identify externally observable weaknesses before adversaries can exploit them. This includes cryptographic gaps (deprecated TLS protocols, weak ciphers, expiring certificates), critical missing security headers (HSTS, CSP, X-Frame-Options), cookie misconfigurations, information disclosure through server banners, and software components with known CVEs or reached End-of-Life (EOL) status.
 
 - **Operational Impact**:
-  Consolidates what traditionally required multiple standalone tools (such as separate DNS query utilities, SSL test tools, header checkers, and technology detectors) into a single, unified, asynchronous assessment pipeline. The scanner persists structured findings in a single commit, computes category-based posture grades, and automatically compiles Executive and Technical vector PDFs alongside machine-readable JSON exports.
+  Consolidates what traditionally required multiple standalone tools (such as separate DNS query utilities, SSL test tools, header checkers, and technology detectors) into a single, unified, asynchronous assessment pipeline. The scanner persists structured findings in a single commit, computes category-based posture grades, and automatically compiles Executive and Technical PDF reports alongside machine-readable JSON exports.
 
 - **Developer & Security-Team Impact**:
   Replaces vague vulnerability notices with structured, evidence-backed findings. Applicable findings provide a concrete problem statement, potential business/technical impact, sequential fix steps, copy-ready configuration snippets for major web servers (Nginx, Apache, Express/Helmet, Caddy), and authoritative RFC/NIST/OWASP reference links, streamlining triage and remediation without requiring deep cryptographic or server administration expertise.
@@ -141,14 +149,14 @@ SentinelScan provides tangible security, operational, and educational value acro
 | **1. Problem Statement** | Modern web apps expose attack surfaces through headers, TLS, DNS, and outdated components lacking lightweight non-destructive auditing. | Section 1 (Purpose & Problem Statement) |
 | **2. Expected Outcome / Proposed Solution** | Automated external web scanner evaluating target URLs with passive intelligence and controlled non-destructive probing. | Section 1 (Proposed Solution, Project Objectives) |
 | **3. Technologies & Tools Used** | Python 3.11+ (verified on Python 3.13 runtime), FastAPI, PostgreSQL / aiosqlite, Redis, ARQ, Next.js 14, Tailwind CSS, ReportLab. | Section 4 (Technology Stack), Section 8, Section 5 |
-| **4. Key Features** | 37 registered detectors, multi-mode scanning, SSRF protection, CVE/lifecycle correlation, SSE live HUD, vector PDFs. | Section 2 (Scope), Section 14 (Registry), Section 39 |
+| **4. Key Features** | 37 registered detectors, multi-mode scanning, SSRF protection, CVE/lifecycle correlation, SSE live HUD, PDF reports. | Section 2 (Scope), Section 14 (Registry), Section 39 |
 | **5. Project Impact** | Multi-dimensional impact: security hardening, operational consolidation, developer remediation, and educational value. | Section 1 (Project Impact) |
 | **6. Understanding & Significance** | Fail-closed security philosophy, perimeter visibility, and clear boundary between what SentinelScan IS vs IS NOT. | Section 1 (Philosophy, IS vs IS NOT), Section 2 |
 | **7. Well-Researched Solution** | Grounded in OWASP Top 10:2025, NIST NVD, CWE, MITRE ATT&CK, IETF RFCs, and endoflife.date lifecycle data. | Section 54 (Research Basis and Technical Justification) |
-| **8. Working Proof of Concept (POC)** | Fully functional full-stack platform verified with 679 passing tests in documented validation run, clean build, and synchronized database schema. | Section 59 (Proof of Concept, Verification Outcome) |
+| **8. Working Proof of Concept (POC)** | Fully functional full-stack platform verified with 704 passing tests (33 warnings) in documented validation run, clean build, and synchronized database schema. | Section 59 (Proof of Concept, Verification Outcome) |
 | **9. Strong Supporting Research** | Normative protocol standards (RFC 6797, 7489, 7208, 6265, 8446) and vulnerability repositories (NVD v2 API). | Section 54 (Research Basis and Technical Justification) |
 | **10. Industry Feedback & Adaptation** | Iterative engineering evolution: retired 10 unused features, simplified schema to 7 tables, hardened SSRF and cancellations. | Section 53 (Industry Feedback, Adaptation & Engineering Changes) |
-| **11. Unique Selling Proposition (USP)** | Unified passive-first reconnaissance, version/CVE/lifecycle correlation, scanner SSRF defenses, and vector PDF reporting. | Section 54 (Unique Selling Proposition) |
+| **11. Unique Selling Proposition (USP)** | Unified passive-first reconnaissance, version/CVE/lifecycle correlation, scanner SSRF defenses, and PDF reporting. | Section 54 (Unique Selling Proposition) |
 | **12. Workflow & Architecture Diagram** | High-level component diagram (graph TD) and detailed end-to-end sequence diagram (sequenceDiagram). | Section 3 (System Architecture), Section 42 (Data Flow) |
 | **13. Visual Presentation Guidance** | Prioritized visual artifacts for presentation slides (problem flowchart, architecture, OWASP matrix, HUD screenshots). | Section 57 (Recommended Visuals for Presentation) |
 | **14. Pseudocode & Algorithms** | Deterministic pipeline orchestration algorithm and category penalty deduction scoring algorithm. | Section 13 (Scanner Orchestration & Scoring Algorithms) |
@@ -257,6 +265,7 @@ graph TD
 | **Settings** | Pydantic-Settings | 2.5.2 | Config management | Validates `.env` variables and enforces production guards | `backend/app/config.py` |
 | **Database ORM** | SQLAlchemy | 2.0.35 | Database abstraction | Async session management and declarative models | `backend/app/models/` |
 | **DB Drivers** | asyncpg / aiosqlite | 0.30.0 / 0.19.0 | Asynchronous drivers | Postgres (production) and SQLite (development) | `backend/app/database.py` |
+| **Async Bridge** | Greenlet | >=3.1.1 | Python 3.13 SQLAlchemy bridge | Required for SQLAlchemy asyncio engine and run_sync operations | `backend/requirements.txt` |
 | **Migrations** | Alembic | 1.13.3 | Schema migrations | Versioned schema migration tracking | `backend/migrations/` |
 | **Job Queue** | ARQ | 0.26.1 | Async task queue | Native Redis async job queue for scanning jobs and crons | `backend/app/worker.py` |
 | **Caching/Broker** | Redis | 5.0.8 | In-memory store | Queue transport, token blacklist, SSE pub/sub, CVE cache | `backend/app/utils/cache.py` |
@@ -265,9 +274,9 @@ graph TD
 | **Cryptography** | Cryptography / Jose | 43.0.1 / 3.3.0 | Token & cipher security | TLS cipher validation, JWT encode/decode, JTI parsing | `backend/app/utils/security.py` |
 | **Password Auth** | Passlib & Bcrypt | 1.7.4 / 4.0.1 | Password security | 12-round salted bcrypt hashing | `backend/app/utils/security.py` |
 | **HTML Parser** | BeautifulSoup4 / lxml | 4.12.3 / 5.3.0 | Document parsing | Fast HTML DOM extraction for crawler and technology signals | `backend/app/scanner/tech_detector.py` |
-| **PDF Engine** | ReportLab | 4.2.5 | Document generation | Native vector PDF layout, canvas styling, and tables | `backend/app/utils/pdf_generator.py` |
+| **PDF Engine** | ReportLab | 4.2.5 | Document generation | Native PDF layout, canvas styling, and tables | `backend/app/utils/pdf_generator.py` |
 | **Rate Limiter** | SlowAPI | 0.1.9 | Rate limiting | Token bucket rate limiting on auth endpoints | `backend/app/routers/auth.py` |
-| **Testing** | Pytest / Asyncio | 9.0.2 / 1.4.0 | Test automation | 679 automated unit, integration, and regression tests | `backend/tests/` |
+| **Testing** | Pytest / Asyncio | 9.1.1 / 1.4.0 | Test automation | 704 automated unit, integration, and regression tests (33 warnings) | `backend/tests/` |
 
 ---
 
@@ -352,6 +361,14 @@ Vulnerabilities are styled with distinct, instantly recognizable status colors:
 ### Typography & Spacing
 Typography utilizes modern system sans-serif fonts (`Inter`, system UI fallback) with strict weight hierarchy: 900/Black for posture scores and grades, 700/Bold for section titles and card metrics, and 400/Regular for vulnerability descriptions and technical evidence. Spacing follows an 8-point geometric grid (p-2, p-4, p-6, gap-4, gap-6).
 
+### Homepage Interactive Cursor Experience
+- **Component Implementation**: Implemented in `frontend/src/components/shared/SplashCursor.jsx` and mounted on the public marketing landing view (`frontend/src/app/page.tsx`).
+- **Visual Aesthetic & Rendering Architecture**: Renders a dynamic fluid simulation cursor splash effect using WebGL (requesting WebGL 2 with WebGL 1 fallback) on an HTML5 `<canvas id="fluid">` element. Custom GLSL vertex and fragment shaders compute Navier-Stokes fluid physics (advection, curl, vorticity, divergence, and pressure iterations). The fluid dye is styled using the platform's brand gold/champagne accent (`#D4AF37`) against the dark background (`#070707`).
+- **Non-Blocking Interaction**: The container element enforces `position: fixed` and `pointer-events: none` overlay styling, ensuring all mouse clicks, hovers, navigation links, and hero action buttons on the page remain immediately clickable without pointer interference.
+- **Pointer & Multi-Touch Input**: Interactivity is driven by window-level listeners for mouse (`mousedown`, `mousemove`) and multi-touch mobile events (`touchstart`, `touchmove`, `touchend`), mapping coordinates scaled by `window.devicePixelRatio`. Programmatic reduced-motion detection is not implemented within the WebGL component.
+- **Scoped Presentation**: The component inspects Next.js route navigation via `usePathname()`, returning `null` when `pathname !== '/'` to ensure the simulation runs strictly on the marketing landing page and is never loaded on authenticated dashboard, scan, history, or report pages.
+- **Separation of Concerns**: Pure frontend visual enhancement with zero backend dependencies, zero scanner involvement, and zero network traffic.
+
 ---
 
 # 7. User Journeys
@@ -372,7 +389,7 @@ Client requests one-time ticket via `POST /api/scans/{scan_id}/sse-ticket` $\rig
 Worker persists findings to DB and updates Scan to `completed` $\rightarrow$ Client navigates to `/reports/{id}` $\rightarrow$ Dashboard displays executive posture score, grade, and findings $\rightarrow$ User clicks finding $\rightarrow$ Frontend displays: What's Wrong, Impact, Location, Evidence, and Concrete Code/Config Fix Steps $\rightarrow$ User triages finding to `Resolved` via `PATCH /api/reports/findings/{id}/status`.
 
 ### 6. PDF & Technical Export
-User clicks "Export Report" $\rightarrow$ Selects "Technical" or "Executive" mode $\rightarrow$ `GET /api/reports/{id}/pdf?mode=technical` $\rightarrow$ Backend generates vector ReportLab document with full finding breakdowns, remediation instructions, and redacted evidence $\rightarrow$ Client downloads PDF directly.
+User clicks "Export Report" $\rightarrow$ Selects "Technical" or "Executive" mode $\rightarrow$ `GET /api/reports/{id}/pdf?mode=technical` $\rightarrow$ Backend generates ReportLab PDF document with full finding breakdowns, remediation instructions, and redacted evidence $\rightarrow$ Client downloads PDF directly.
 
 ---
 
@@ -432,7 +449,7 @@ backend/app/
     ├── security.py        # Bcrypt password hashing & JWT token encoding/decoding
     ├── cache.py           # Redis connection pool, token blacklisting, and SSE tickets
     ├── progress.py        # Redis Pub/Sub SSE pipeline
-    ├── pdf_generator.py   # ReportLab vector PDF document compiler
+    ├── pdf_generator.py   # ReportLab PDF document compiler
     └── exporter.py        # Sanitized JSON report exporter
 ```
 
@@ -470,7 +487,7 @@ All API endpoints reside under the `/api` prefix.
 - **`GET /api/reports/dashboard_stats`**: Computes aggregated security score, score trend, open critical/high counts, and actionable security items (excluding passed controls and resolved items).
 - **`GET /api/reports/{report_id}`**: Fetch full report details including executive summary, tech stack, raw headers, DNS info, SSL certificate, and finding inventory.
 - **`DELETE /api/reports/{report_id}`**: Delete report and cascaded findings.
-- **`GET /api/reports/{report_id}/pdf`**: Generates and downloads vector PDF report (`?mode=technical` or `?mode=executive`).
+- **`GET /api/reports/{report_id}/pdf`**: Generates and downloads PDF report (`?mode=technical` or `?mode=executive`).
 - **`GET /api/reports/{report_id}/json`**: Exports sanitized machine-readable JSON structure.
 - **`GET /api/reports/findings/{finding_id}`**: Fetch detailed single-finding view with finding-level remediation guidance, problem description, business impact, fix steps, configuration examples, technical evidence, and historical occurrence counts across scans of the target URL.
 - **`PATCH /api/reports/findings/{finding_id}/status`**: Update finding triage status (`open`, `accepted_risk`, `resolved`, `false_positive`).
@@ -728,6 +745,8 @@ Target URL Input
 ```
 
 ### Additional Security Controls
+- **Outbound TLS Verification by Default**: Normal HTTP fetching operations enforce standard certificate validation (`verify=True`). Earlier insecure outbound `verify=False` patterns were removed from runtime fetching routines. Safe HTTP transport handles canonical hostname and SNI matching.
+- **Scan State Transition Guards**: The transition from `pending` to `running` uses atomic conditional SQL updates, ensuring cancelled or terminal scans cannot be inadvertently revived. Cooperative cancellation checks between stages allow jobs to terminate cleanly upon cancellation.
 - **Rate Limiting**: Protected by SlowAPI at 5 auth requests/minute per IP, max 2 concurrent scans per user, and 10 scans/hour via database timestamp query.
 - **Sensitive Data Redaction (`app/utils/sanitize.py`)**: Automatic regex scrubbing removes passwords, API tokens, JWTs, AWS secret keys, and Set-Cookie credentials from headers, raw bodies, and PDF/JSON exports before storage or rendering.
 - **Production Settings Validator (`app/config.py`)**: Application refuses to boot if `ENVIRONMENT=production` and `SECRET_KEY` is weak, `DEBUG` is True, or `REQUIRE_EMAIL_VERIFICATION` is False.
@@ -955,6 +974,12 @@ SentinelScan performs structured parsing and analysis of HTTP response headers:
 - **Permissions-Policy**: Verifies modern replacement for Feature-Policy, verifying restrictions on device sensors.
 - **Server & Technology Banners**: Detects detailed version disclosures in `Server` and `X-Powered-By` headers and advises stripping them to prevent targeted reconnaissance.
 
+### HSTS Finding Normalization & Deduplication
+- **Value Normalization**: Missing, empty, or whitespace-only `Strict-Transport-Security` headers are normalized consistently as absent.
+- **Pipeline Deduplication**: When both passive header analysis and OWASP A04 cryptographic analysis evaluate HSTS compliance, findings are canonicalized and deduplicated by canonical finding identity (`(detector_id, category, title)`) prior to scoring, summary compilation, and database persistence.
+- **Single Penalty Guarantee**: Deduplication ensures missing HSTS generates exactly one finding and one 4.8-point category deduction, preventing duplicate score penalties across pipeline stages.
+- **Observed Validation**: Verified on controlled targets (e.g., `ginandjuice.shop`), emitting exactly 1 HSTS finding without duplicate representation.
+
 ---
 
 # 16. Cookie Security Analysis
@@ -985,6 +1010,8 @@ The DNS analyzer queries authoritative nameservers for perimeter email and routi
 - **DMARC (Domain-based Message Authentication)**: Queries `_dmarc.{domain}`. Validates whether policy enforces `reject` or `quarantine`, flagging weak `p=none` testing policies.
 - **DKIM / Email Routing**: Checks DKIM selector availability and validates MX records for proper mail routing posture.
 - **MX Records**: Confirms legitimate mail routing configurations and flags missing perimeter mail handling.
+
+*(Note: DNSSEC detection was deliberately removed from SentinelScan because the earlier implementation did not perform authoritative cryptographic DNSSEC validation. Active DNS checks focus on SPF, DMARC, and MX records across 4 verified detectors).*
 
 ---
 
@@ -1142,6 +1169,8 @@ $$\text{Overall Score} = \sum_{\text{all categories}} \text{Category Score}$$
 
 *Passed controls (`is_passed_control: True`) and informational observations never incur score deductions.*
 
+*Example: A High-severity finding in Security Headers (such as missing HSTS, severity weight 10, category max 20) incurs a penalty of exactly $(10 / 25.0) \times 20 \times 0.6 = 4.8$ points. It does not cause a 15-point deduction.*
+
 ---
 
 # 25. Scan Lifecycle
@@ -1236,7 +1265,7 @@ Delivered via `GET /api/reports/{id}/json`, providing automated CI/CD pipeline c
 The PDF generation engine is implemented in `backend/app/utils/pdf_generator.py` using **ReportLab 4.2.5**.
 
 ### Document Layout & Features
-- **Vector Styling**: Generates crisp, printable vector layouts without external web-browser dependencies (no Chromium/Puppeteer overhead).
+- **PDF Styling**: Generates crisp, printable PDF layouts without external web-browser dependencies (no Chromium/Puppeteer overhead).
 - **Executive Summary Block**: Includes target URL, scan date, total findings, posture score badge, and letter grade banner.
 - **Severity Data Tables**: Formatted finding summaries color-coded by risk level.
 - **Finding Detail Cards**: Renders plain-language problem statements, impact assessments, sequential fix steps, code-block configuration examples, and documentation references.
@@ -1261,6 +1290,17 @@ SentinelScan includes a dedicated administrative portal for platform governance.
 - **System Health (`/admin/health`)**: Live status indicators for the database connection, Redis connectivity, ARQ worker heartbeat freshness, and active queue depths.
 - **User Management (`/admin/users`)**: Searchable user table allowing administrators to inspect registered accounts, review verification status, and administratively delete user accounts with audit logging.
 - **Strict Authorization**: Admin endpoints and frontend routes check `user.role == UserRole.admin`. Standard users are rejected with `403 Forbidden`.
+
+### Verified Admin API Routes
+- `GET /api/admin/stats`: Aggregates platform-wide metrics (user count, scan count, report count, average score, top 5 common vulnerabilities, top missing headers).
+- `GET /api/admin/users`: Returns paginated user records with role, email verification status, and creation timestamps.
+- `DELETE /api/admin/users/{user_id}`: Deletes user record and enqueues administrative audit record.
+- `GET /api/admin/scans`: Returns platform scan inventory with target URLs and execution states.
+- `GET /api/admin/logs`: Returns system audit logs for administrative inspection.
+- `GET /api/admin/health`: Real-time probe of database connection, Redis connectivity, and ARQ worker heartbeat.
+
+### Administrative Audit Logging
+Administrative user deletion creates an `AuditLog` record documenting `admin_id`, `target_user_id`, `action="user_deletion"`, timestamp, and outcome details without storing sensitive passwords, auth secrets, or unnecessary PII.
 
 ---
 
@@ -1288,7 +1328,17 @@ Validation is applied defensively across all layers:
 # 34. Rate Limiting
 
 Rate limiting protects SentinelScan from abuse across three tiers:
-1. **Authentication Limiting (SlowAPI)**: Auth endpoints (`POST /api/auth/login`, `POST /api/auth/register`, `POST /api/auth/dev-verify`) are rate limited per client IP (default 5 requests/minute for login). Exceeding the threshold returns `429 Too Many Requests`.
+1. **Authentication Limiting (SlowAPI)**: Auth endpoints are throttled per client IP to mitigate brute-force and credential stuffing:
+   - `POST /api/auth/register`: 5 requests/minute per IP
+   - `POST /api/auth/login`: 5 requests/minute per IP
+   - `POST /api/auth/forgot-password`: 10 requests / 15 minutes per IP
+   - `POST /api/auth/reset-password`: 30 requests/minute per IP
+   - `POST /api/auth/verify-email`: 10 requests/minute per IP
+   - `POST /api/auth/resend-verification`: 10 requests/minute per IP
+   - `GET /api/auth/google/login`: 3 requests/minute per IP
+   - `GET /api/auth/google/callback`: 5 requests/minute per IP
+   - `POST /api/auth/refresh`: 20 requests/minute per IP
+   - Exceeding any threshold returns standard HTTP `429 Too Many Requests`.
 2. **Concurrent Active Scans**: In `app/routers/scans.py`, users are restricted to `MAX_ACTIVE_SCANS_PER_USER` (default 2 concurrent scans in `pending` or `running` status).
 3. **Hourly Scan Quota**: Users are restricted to `RATE_LIMIT_SCANS_PER_HOUR` (default 10 scans per hour) enforced by counting user scans in the database created within the past 60 minutes.
 
@@ -1317,8 +1367,13 @@ Rate limiting protects SentinelScan from abuse across three tiers:
 SentinelScan maintains an extensive automated testing suite located in `backend/tests/`.
 
 ### Verified Test Results (Documented Validation Run)
-- **Backend Test Suite**: **679 passed in 58.42s (0 failures, 0 errors)** (observed during documented validation runs; demonstrates automated test coverage across implemented paths without serving as an absolute guarantee against all potential edge defects).
-- **Test Collection**: 679 tests collected cleanly across 36 test files.
+- **Backend Test Suite**: **704 passed, 33 warnings in 101.71s (0 failures, 0 errors)** (observed during documented validation runs; demonstrates automated test coverage across implemented paths without serving as an absolute guarantee against all potential edge defects).
+- **Test Collection**: 704 tests collected cleanly across 37 test modules in `backend/tests/`.
+- **Latest CI Validation**: Multi-job GitHub Actions workflow executing on clean Ubuntu Python 3.13 runners:
+  - *Backend Test Suite (Pytest)*: **PASS** (all 704 tests passing cleanly).
+  - *Frontend Typecheck & Build*: **PASS** (`tsc --noEmit` 0 errors, `next build` 20/20 routes prerendered).
+  - *Repository & Secret Safety Checks*: **PASS** (clean git diff, zero secret/key leaks).
+- **Dependency Reproducibility**: `greenlet>=3.1.1` declared in `backend/requirements.txt`, ensuring clean Python 3.13 virtual environments and CI containers resolve SQLAlchemy's async greenlet bridge without missing module exceptions.
 - **Test Categories**:
   - `test_ssrf.py`: 39 tests verifying loopbacks, private subnets, link-local metadata, NAT64 prefixes, IPv4-mapped IPv6, DNS rebinding, and redirect safety.
   - `test_worker.py`: 26 tests verifying state transitions, cancellation race conditions, idempotency, and progress structures.
@@ -1359,7 +1414,7 @@ Database migrations are managed via **Alembic**.
 | **Scan Submission** | Implemented | `/scan` | `POST /api/scans` | `scans` | ARQ Queue | Enqueues background scan with concurrency & rate checks |
 | **Real-Time Progress (SSE)**| Implemented | `/scan` (HUD) | `/api/scans/{id}/stream` | — | Redis Pub/Sub | Streams live stage completion percentage to client |
 | **Scan Cancellation** | Implemented | `/scan`, `/history` | `PATCH /api/scans/{id}/cancel` | `scans` | Inter-stage check| Cooperatively terminates pending or running scans |
-| **DNS Assessment** | Implemented | `/reports/[id]/dns` | `/api/reports/{id}` | `reports`, `findings` | Stage 1 | Inspects A, AAAA, MX, TXT, SPF, DMARC, DNSSEC |
+| **DNS Assessment** | Implemented | `/reports/[id]/dns` | `/api/reports/{id}` | `reports`, `findings` | Stage 1 | Inspects A, AAAA, MX, TXT, SPF, DMARC records |
 | **SSL/TLS Assessment** | Implemented | `/reports/[id]/ssl` | `/api/reports/{id}` | `reports`, `findings` | Stage 2 | Checks certificates, expiry, protocols, and weak ciphers |
 | **Header Analysis** | Implemented | `/reports/[id]/headers` | `/api/reports/{id}` | `reports`, `findings` | Stage 3 | Evaluates HSTS, CSP, XFO, XCTO, Referrer, CORS |
 | **Cookie Inspection** | Implemented | `/reports/[id]/headers` | `/api/reports/{id}` | `findings` | Stage 3 | Checks `Secure`, `HttpOnly`, and `SameSite` flags |
@@ -1371,7 +1426,7 @@ Database migrations are managed via **Alembic**.
 | **Posture Scoring** | Implemented | `/dashboard`, `/reports/[id]`| `/api/reports/{id}` | `reports` | Stage 8 | Computes 0–100 score and A+ to F letter grade |
 | **Remediation Guidance** | Implemented | `/findings/[id]`, Reports | `/api/reports/findings/{id}` | `findings` | Stage 8 | Provides tailored fix steps, configs, and RFC references |
 | **Finding Triage** | Implemented | `/findings/[id]` | `PATCH /api/reports/findings/{id}/status` | `findings` | — | Updates finding status (`open`, `resolved`, etc.) |
-| **ReportLab PDF Export** | Implemented | `/reports/[id]` | `/api/reports/{id}/pdf` | — | — | Compiles Technical and Executive vector PDF reports |
+| **ReportLab PDF Export** | Implemented | `/reports/[id]` | `/api/reports/{id}/pdf` | — | — | Compiles Technical and Executive PDF reports |
 | **JSON Export** | Implemented | `/reports/[id]` | `/api/reports/{id}/json` | — | — | Standardized JSON security report export |
 | **Scan History** | Implemented | `/history` | `/api/scans` | `scans`, `reports` | — | Filterable past scan execution logs |
 | **Admin User Portal** | Implemented | `/admin/users` | `/api/admin/users` | `users` | — | User inspection, account status, and administrative deletion |
@@ -1418,7 +1473,28 @@ The following 10 features were previously prototyped or planned but have been **
 - **`backend/app/scanner/metadata.py`**: Authoritative detector registry defining all 37 detectors and standards mappings.
 - **`backend/app/scanner/scoring.py`**: Category weight allocations, penalty curves, letter grades, and executive summary generator.
 - **`backend/app/scanner/threat_intel.py`**: Maps findings to OWASP Top 10:2025 and MITRE ATT&CK; enriches findings with remediation steps.
-- **`backend/app/utils/pdf_generator.py`**: ReportLab PDF compiler building vector Technical and Executive PDF reports.
+- **`backend/app/utils/pdf_generator.py`**: ReportLab PDF compiler building Technical and Executive PDF reports.
+
+### Modular Technical Documentation (`docs/`)
+The repository maintains comprehensive, verified technical documentation organized into 18 topic guides under `docs/`:
+- `docs/API.md`: Complete OpenAPI REST endpoints, request/response DTO schemas, parameters, and HTTP error codes.
+- `docs/ARCHITECTURE.md`: Asynchronous topology, decoupled worker processing, state machine, and data flow.
+- `docs/COVERAGE.md`: Assessment coverage matrix, supported security categories, and observation boundaries.
+- `docs/Database.md`: PostgreSQL schema, relational entity models, cascade rules, and Alembic versioning.
+- `docs/Deployment.md`: Docker Compose multi-container setup, environment configuration, and production hardening.
+- `docs/DETECTION_ACCURACY_MATRIX.md`: Detector precision, evidence structures, confidence scoring, and false-positive controls.
+- `docs/Detectors.md`: Comprehensive reference guide for all 37 registered security detectors.
+- `docs/DeveloperGuide.md`: Local development workflow, coding conventions, test execution, and worker debugging.
+- `docs/Frontend.md`: Next.js 14 App Router architecture, component hierarchy, Zustand stores, and Tailwind design tokens.
+- `docs/Limitations.md`: Honest technical limitations, passive-first boundaries, and non-goals.
+- `docs/Performance.md`: Concurrency scaling, task timeouts, queue throughput, and latency profiles.
+- `docs/Reports.md`: PDF and JSON export data specifications and server-side credential redaction rules.
+- `docs/Roadmap.md`: Planned future milestones and post-v1.0 capability proposals.
+- `docs/Security.md`: Platform security architecture, dual-token JWT auth, rate limits, and tenant isolation.
+- `docs/Testing.md`: Pytest suite architecture, async test fixtures, datasets, and regression testing protocols.
+- `docs/THREAT_MODEL.md`: STRIDE threat modeling analysis and defense-in-depth security mitigations.
+- `docs/UserGuide.md`: End-user scanner manual, target submission, live progress monitoring, and remediation triage.
+- `docs/Workers.md`: Distributed ARQ worker execution, Redis job orchestration, and background cron schedules.
 
 ---
 
@@ -1693,7 +1769,7 @@ npm run build
 # 50. Security Assumptions
 
 1. **Target Authorization**: The platform assumes the operator possesses authorization to assess the target domain, in accordance with the user consent agreement acknowledged during active scan creation.
-2. **Public DNS Integrity**: The platform assumes upstream public DNS nameservers return untampered records unless DNSSEC validation explicitly detects spoofing.
+2. **Public DNS Integrity**: The platform assumes upstream public DNS nameservers return untampered records.
 3. **Environment Security**: The platform assumes the hosting infrastructure (PostgreSQL, Redis) is protected by local network boundaries and not exposed directly to the public internet.
 
 ---
@@ -1705,7 +1781,7 @@ npm run build
 | **FastAPI Backend** | High asynchronous performance and native OpenAPI typing | High concurrency with low memory footprint; automated interactive API docs | Requires careful management of synchronous blocking calls (e.g., DNS resolution) |
 | **Next.js 14 App Router** | Modern React Server Component architecture with nested layouts | Unified layouts, fast client transitions, and clean page route structuring | Increased client build complexity compared to plain HTML/Vite |
 | **ARQ Worker Queue** | Lightweight, async-native Redis job queue | Simple integration with `asyncio`, low overhead compared to Celery | Less enterprise monitoring tooling compared to Celery/RabbitMQ |
-| **ReportLab for PDF** | Native Python vector PDF layout engine | No heavy headless Chromium/Puppeteer browser dependencies in worker container | Programmatic canvas and table styling requires exact coordinate and flowable management |
+| **ReportLab for PDF** | Native Python PDF layout engine | No heavy headless Chromium/Puppeteer browser dependencies in worker container | Programmatic canvas and table styling requires exact coordinate and flowable management |
 | **Passive-First Philosophy**| Controlled, non-destructive assessment | Can safely assess live production targets without availability risk | Cannot uncover complex multi-stage dynamic exploit chains |
 | **SSRF IP Pinning** | Defeats DNS Rebinding (TOCTOU) attacks | Guarantees the IP validated is the exact IP connected to | Requires manual redirect handling and custom HTTP transport configuration |
 | **Stateless JWT + Redis Revocation**| Scalable authentication with instant revocation | Horizontal API scaling without database session queries on every request | Requires Redis connectivity to enforce token revocation |
@@ -1746,7 +1822,7 @@ To transform SentinelScan into a focused, highly maintainable web security scann
 
 1. **Focused Core Purpose**: The remaining codebase directly serves URL ingestion, SSRF safety, finding detection, posture scoring, or report generation.
 2. **Reduced Failure Surface**: Dropping 7 database tables and unneeded background workers eliminated dead database locks, orphaned migrations, and foreign key cascades.
-3. **Faster Test & Build Execution**: The test suite runs 679 automated tests in under 60 seconds with 0 failures and 0 errors.
+3. **Faster Test & Build Execution**: The test suite runs 704 automated tests (33 warnings) in approximately 100 seconds with 0 failures and 0 errors.
 4. **Cognitive Clarity**: Developers, evaluators, and reviewers can trace the entire project lifecycle without navigating dead or half-implemented prototype modules.
 
 ## Industry Feedback, Adaptation & Engineering Changes
@@ -1769,6 +1845,21 @@ Rather than treating the initial implementation as static, SentinelScan evolved 
 5. **Security Standards Alignment**:
    - *Review Finding*: Earlier detector taxonomy relied on generic security labels rather than current industry frameworks.
    - *Implemented Change*: Realigned the assessment engine to the **OWASP Top 10:2025** standard (A01–A10), explicitly introducing the `NOT_VERIFIABLE` status for internal categories that cannot be verified from external HTTP responses alone.
+6. **HSTS Finding Deduplication & Scoring Normalization**:
+   - *Review Finding*: Target scanning occasionally produced duplicate HSTS findings across passive header checks and OWASP A04 cryptographic modules, causing double score deductions.
+   - *Implemented Change*: Normalized empty/whitespace HSTS headers and added pre-scoring canonical finding deduplication, ensuring exactly one HSTS finding and one 4.8-point category deduction.
+7. **Forensic Security Hardening & DNSSEC Removal**:
+   - *Review Finding*: Outbound requests previously permitted `verify=False` in some code paths, scan state transitions had potential revival races, and DNSSEC detection was unverified.
+   - *Implemented Change*: Enforced outbound TLS verification by default with canonical SNI, implemented atomic conditional scan state transitions (`pending -> running`), and removed the unverified DNSSEC detector (stabilizing the registry at 37 verified detectors).
+8. **Homepage Interactive UI Polish**:
+   - *Review Finding*: The landing page required an engaging, modern visual cursor interaction aligned with the dark-mode aesthetic without impacting performance or dashboard workflows.
+   - *Implemented Change*: Integrated WebGL-driven `SplashCursor` fluid simulation (`frontend/src/components/shared/SplashCursor.jsx`) with gold/champagne accent (`#D4AF37`), multi-touch event handling, and a non-blocking `pointer-events: none` overlay, strictly isolated to the marketing landing view (`/`).
+9. **GitHub Repository Publication & CI Stabilization**:
+   - *Review Finding*: The project required canonical GitHub publication under `AttackSurface` with zero tracked secrets and reproducible CI on Python 3.13.
+   - *Implemented Change*: Published project to `https://github.com/Nandinivora18/AttackSurface` (branch `main`), declared `greenlet>=3.1.1` in `backend/requirements.txt` to support async SQLAlchemy on Python 3.13 in clean CI runners, achieving 100% passing status across all 3 GitHub Actions jobs and 704 backend pytest runs.
+10. **Documentation Synchronization**:
+    - *Review Finding*: Outdated counts (27/38 detectors, 679 tests, old repository URLs, stale trends/analytics) lingered in legacy text.
+    - *Implemented Change*: Fully audited and synchronized README and master documentation to reflect current verified reality.
 
 ---
 
@@ -1784,7 +1875,7 @@ SentinelScan's USP is its combination of passive-first external assessment, cont
 3. **Technology Detection with CVE & Lifecycle Correlation**: Fingerprints 23 technologies, extracts versions for 10 technologies, normalizes distribution-specific suffixes, checks vendor End-of-Life (EOL) dates via cached upstream data, and correlates known vulnerabilities directly against the NIST NVD database.
 4. **OWASP Top 10:2025 Assessment Coverage with Explicit Boundaries**: Evaluates target perimeters across all ten 2025 categories (A01–A10), explicitly marking unobservable internal architectural categories (e.g., A06 Insecure Design or A09 Internal Alerting) as `NOT_VERIFIABLE` or evidence-assisted.
 5. **Built-in Outbound SSRF & IP Pinning Guard**: Protects the scanner infrastructure against malicious loopback redirection, private subnet probing, and DNS-rebinding (TOCTOU) attacks by pinning validated destination IPs across redirect hops.
-6. **Unified Multi-Format Vector Reporting**: Generates responsive web reports, direct SIEM-ready JSON streams, and two-tier vector PDF assessments (Executive Summaries for leadership and 16-section Technical Reports for engineers) via ReportLab with automated sensitive data redaction.
+6. **Unified Multi-Format Reporting**: Generates responsive web reports, direct SIEM-ready JSON streams, and two-tier PDF report assessments (Executive Summaries for leadership and 16-section Technical Reports for engineers) via ReportLab with automated sensitive data redaction.
 
 ### Research Basis and Technical Justification
 
@@ -1821,7 +1912,7 @@ SentinelScan addresses this practical gap by integrating these assessment stages
 2. **Outbound SSRF Protection**: Uses destination validation, IP pinning, and NAT64/IPv4-mapped address handling designed to reduce SSRF, DNS-rebinding, and redirect-bypass exposure.
 3. **Direct OWASP Top 10:2025 Mapping**: Systematically categorizes findings against the latest 2025 OWASP standard.
 4. **Context-Rich Remediation**: Avoids generic "fix your headers" messages by supplying specific code snippets (Nginx, Apache, Express) and sequential configuration steps for applicable findings.
-5. **Lightweight Vector PDFs**: Generates executive and technical PDFs directly via ReportLab without the bloat of headless browser engines.
+5. **Lightweight PDF Reports**: Generates executive and technical PDF reports directly via ReportLab without the bloat of headless browser engines.
 
 ---
 
@@ -1861,6 +1952,26 @@ SentinelScan addresses this practical gap by integrating these assessment stages
 9. **Stage 8 (Scoring & Report)**: Calculates deductions: 10 points deducted for missing headers. Overall Posture Score: **82 (Grade: A)**. Enriches findings with Apache/Nginx configuration snippets.
 10. **Delivery**: Report committed to database. SSE stream emits `completed`. The user views the report online and downloads the Executive PDF.
 
+### Fresh Scan Validation Scenario: `https://ginandjuice.shop`
+*(Controlled Training/Demonstration Target — Illustrative Validation Scenario)*
+
+> **Context**: `https://ginandjuice.shop` is an intentionally vulnerable public training/demo target used to validate the end-to-end scanner pipeline, finding deduplication, scoring accuracy, and multi-format report export fidelity in a controlled setting. This scenario is documented for verification purposes and is not a universal benchmark or an endorsement of unauthorized testing.
+
+- **Observed Scan Metadata**:
+  - **Scan ID**: `7e3ce8c7-7b65-42b5-831d-504dae290550`
+  - **Report ID**: `1480150f-1d51-468f-abcc-9146c48dee5e`
+  - **Target URL**: `https://ginandjuice.shop`
+- **Observed Assessment Outcome**:
+  - **Security Posture Score**: **81 / 100**
+  - **Letter Grade**: **A**
+  - **Overall Assessed Risk**: **HIGH**
+  - **Total Emitted Findings**: **14 findings**
+  - **Severity Breakdown**: 2 High, 2 Medium, 6 Low, 4 Informational
+- **Key Pipeline Validations Observed**:
+  - **HSTS Deduplication**: Exactly **1 HSTS finding** emitted (deduplicated across header analysis and OWASP A04 cryptographic stages with a single 4.8-point deduction).
+  - **DNSSEC Validation**: **0 DNSSEC findings** emitted, confirming complete removal of the unverified DNSSEC detector.
+  - **Cross-Format Consistency**: Database entity persistence, REST API JSON output, and generated ReportLab PDF export all rendered exactly **14 findings** with identical scores and severity distributions.
+
 ---
 
 # 57. Viva / Presentation Explanation
@@ -1874,7 +1985,7 @@ SentinelScan addresses this practical gap by integrating these assessment stages
 ### 3-Minute Technical Architecture Summary
 > *"Architecturally, SentinelScan is structured into three distinct decoupled tiers: the presentation frontend, the asynchronous API gateway, and the distributed worker pipeline.*  
 > *The frontend is a Next.js 14 Single Page Application using Tailwind CSS and Framer Motion for real-time visualization. The API is powered by FastAPI, enforcing authentication via bcrypt password hashing, stateless JWTs, and HttpOnly refresh cookies. When a scan is initiated, the API performs pre-flight SSRF validation to block private and link-local networks, pins the target IP to eliminate DNS rebinding TOCTOU vulnerabilities, and enqueues a deterministic job into Redis.*  
-> *The scanning engine runs in an ARQ worker process. It executes 37 distinct detectors across DNS, SSL, security headers, technology fingerprinting, and OWASP modules. Software components are cross-referenced with live NIST NVD CVEs and vendor lifecycle databases. Upon completion, the scoring engine calculates category deductions across a 100-point rubric, maps findings to MITRE ATT&CK techniques, and persists results atomically to PostgreSQL. Users monitor scans live via Server-Sent Events authorized through single-use Redis tickets and export vector PDF reports compiled by ReportLab. The codebase is thoroughly tested with 679 automated tests passing with zero failures."*
+> *The scanning engine runs in an ARQ worker process. It executes 37 distinct detectors across DNS, SSL, security headers, technology fingerprinting, and OWASP modules. Software components are cross-referenced with live NIST NVD CVEs and vendor lifecycle databases. Upon completion, the scoring engine calculates category deductions across a 100-point rubric, maps findings to MITRE ATT&CK techniques, and persists results atomically to PostgreSQL. Users monitor scans live via Server-Sent Events authorized through single-use Redis tickets and export PDF reports compiled by ReportLab. The codebase is thoroughly tested with 704 automated tests passing (33 warnings) with zero failures."*
 
 ## Recommended Visuals for Presentation
 
@@ -1891,7 +2002,7 @@ For academic evaluations, viva examinations, and technical project demonstration
    - Comprehensive Technical Report displaying evidence strings and score deductions.
    - Finding Detail Drawer rendering sequential fix steps and copy-ready Nginx/Apache configuration snippets.
 8. **Comparison Table**: The Existing Approach vs. Proposed SentinelScan Approach comparison matrix.
-9. **Automated Verification Baseline Visual**: Callout card showing 679/679 passing tests, 0 failures, 0 errors, and Alembic revision `7340c9ab6be5`.
+9. **Automated Verification Baseline Visual**: Callout card showing 704/704 passing tests (33 warnings), 0 failures, 0 errors, and Alembic revision `7340c9ab6be5`.
 
 ---
 
@@ -1914,10 +2025,11 @@ For academic evaluations, viva examinations, and technical project demonstration
 SentinelScan resulted in a functioning full-stack web security assessment platform capable of accepting a target URL, performing controlled external security assessment, generating structured findings and evidence, mapping applicable findings to OWASP Top 10:2025 and related security standards, calculating a posture score using the implemented scoring model, and producing web, JSON, Executive PDF, and Technical PDF reports.
 
 ### Verification Outcome (Observed Validation Baseline)
-- 679 backend tests passed (0 failures, 0 errors in documented validation run).
+- 704 backend tests passed (33 warnings, 0 failures, 0 errors in documented validation run).
 - Alembic schema synchronized at migration `7340c9ab6be5`.
 - Frontend TypeScript validation completed successfully (0 errors).
 - Frontend production build completed successfully (20/20 static routes prerendered in observed build).
+- Latest observed GitHub Actions validation passed all configured CI checks (Backend tests, Frontend build, Secret safety).
 
 ## Proof of Concept (POC)
 
@@ -1934,7 +2046,7 @@ The POC validates that all architectural tiers function in harmony:
 5. **Deliverable Production**: The completed report is immediately viewable in the responsive Next.js web application and exportable as structured JSON, Executive PDF, or comprehensive Technical PDF.
 
 ### Current Validation Evidence
-- **Backend Test Suite**: **679/679 automated backend tests passing** (0 failures, 0 errors across 36 test modules in documented validation run).
+- **Backend Test Suite**: **704/704 automated backend tests passing** (33 warnings, 0 failures, 0 errors across 37 test modules in documented validation run).
 - **Database Schema**: Deterministic migration chain synchronized at Alembic head `7340c9ab6be5` across 6 core business domain tables and 1 migration tracking table.
 - **Frontend Production Build**: Next.js 14 App Router compiled cleanly with zero TypeScript errors and **20/20 static pages prerendered in observed build verification**.
 - **Verified User Journeys**: End-to-end user workflows (authentication, scan initiation, SSE HUD streaming, report inspection, and PDF export) verified during forensic auditing.
@@ -1954,7 +2066,7 @@ SentinelScan represents a clean, robust, and highly focused passive-first and co
 - **Detection Baseline**: 37 registered detectors covering HTTP headers, TLS protocols, DNS security, content exposure, technology fingerprinting, and OWASP Top 10:2025 categories A01 through A10.
 - **Remediation**: Finding-level remediation guidance with sequential fix steps, configuration code snippets, and official documentation references.
 - **Database Schema**: 6 core business domain tables and 1 migration tracking table (7 total) managed by Alembic head `7340c9ab6be5`.
-- **Quality & Verification**: 679/679 backend tests passing (0 failures, 0 errors in documented validation run); frontend TypeScript compile clean (0 errors); Next.js production build passing (20/20 static routes prerendered in observed build).
+- **Quality & Verification**: 704/704 backend tests passing (33 warnings, 0 failures, 0 errors in documented validation run); frontend TypeScript compile clean (0 errors); Next.js production build passing (20/20 static routes prerendered in observed build); latest observed GitHub Actions validation passed all 3 CI checks.
 - **Security Posture**: Fail-closed SSRF protection with IP pinning, rate limiting, and secure credential handling.
 
 ---
