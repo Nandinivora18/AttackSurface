@@ -11,8 +11,8 @@ function SplashCursor({
   PRESSURE = 0.1,
   PRESSURE_ITERATIONS = 20,
   CURL = 2.2,
-  SPLAT_RADIUS = 0.22,
-  SPLAT_FORCE = 4500,
+  SPLAT_RADIUS = 0.15,
+  SPLAT_FORCE = 3600,
   SHADING = true,
   COLOR_UPDATE_SPEED = 10,
   BACK_COLOR = { r: 0, g: 0, b: 0 },
@@ -101,7 +101,7 @@ function SplashCursor({
         halfFloat = gl.getExtension('OES_texture_half_float');
         supportLinearFiltering = gl.getExtension('OES_texture_half_float_linear');
       }
-      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      gl.clearColor(0.0, 0.0, 0.0, 0.0);
 
       const halfFloatTexType = isWebGL2 ? gl.HALF_FLOAT : halfFloat && halfFloat.HALF_FLOAT_OES;
       let formatRGBA;
@@ -544,7 +544,7 @@ function SplashCursor({
           gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo);
         }
         if (clear) {
-          gl.clearColor(0.0, 0.0, 0.0, 1.0);
+          gl.clearColor(0.0, 0.0, 0.0, 0.0);
           gl.clear(gl.COLOR_BUFFER_BIT);
         }
         gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
@@ -1078,7 +1078,7 @@ function SplashCursor({
         position: 'fixed',
         top: 0,
         left: 0,
-        zIndex: 50,
+        zIndex: 0,
         pointerEvents: 'none',
         width: '100%',
         height: '100%',
@@ -1091,7 +1091,8 @@ function SplashCursor({
         style={{
           width: '100vw',
           height: '100vh',
-          display: 'block'
+          display: 'block',
+          backgroundColor: 'transparent'
         }}
       />
     </div>

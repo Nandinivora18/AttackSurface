@@ -149,15 +149,17 @@ function LoginPageInner() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070707] flex items-center justify-center px-4 hero-grid relative overflow-hidden">
+    <div className="min-h-[100dvh] bg-[#070707] flex items-center justify-center px-4 py-3 sm:py-5 hero-grid relative">
       {/* Ambient glows */}
-      <div className="absolute top-1/3 left-1/3 w-80 h-80 bg-[#D4AF37]/5 rounded-full blur-3xl pointer-events-none" aria-hidden />
-      <div className="absolute bottom-1/3 right-1/3 w-80 h-80 bg-[#5C4A20]/10 rounded-full blur-3xl pointer-events-none" aria-hidden />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
+        <div className="absolute top-1/3 left-1/3 w-80 h-80 bg-[#D4AF37]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/3 right-1/3 w-80 h-80 bg-[#5C4A20]/10 rounded-full blur-3xl" />
+      </div>
 
-      <div className="w-full max-w-md relative z-10 page-enter">
+      <div className="w-full max-w-md relative z-10 page-enter my-auto">
         {/* Logo */}
-        <Link href="/" className="flex items-center justify-center gap-2.5 mb-8 group" aria-label="SentinelScan home">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1A1A1A] to-[#0D0D0D] border border-[#5C4A20] flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)]">
+        <Link href="/" className="flex items-center justify-center gap-2.5 mb-3 sm:mb-4 group" aria-label="SentinelScan home">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#1A1A1A] to-[#0D0D0D] border border-[#5C4A20] flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)]">
             <Shield className="w-5 h-5 text-[#D4AF37]" aria-hidden />
           </div>
           <span className="text-xl font-bold text-[#F5F3ED]">
@@ -165,13 +167,13 @@ function LoginPageInner() {
           </span>
         </Link>
 
-        <div className="glass-card p-8 border border-[#2A2A2A] bg-[#111111]">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#D4AF37]/20 bg-[#D4AF37]/5 text-[#D4AF37] text-xs font-semibold uppercase tracking-wider mb-3">
-              <Shield className="w-3.5 h-3.5" /> User Portal
+        <div className="glass-card px-5 py-4 sm:px-6 sm:py-5 border border-[#2A2A2A] bg-[#111111]">
+          <div className="text-center mb-3 sm:mb-4">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-[#D4AF37]/20 bg-[#D4AF37]/5 text-[#D4AF37] text-[11px] font-semibold uppercase tracking-wider mb-2">
+              <Shield className="w-3 h-3" /> User Portal
             </div>
-            <h1 className="text-2xl font-bold text-[#F5F3ED] mb-2">SentinelScan User Login</h1>
-            <p className="text-[#A7A39A] text-sm">Sign in to your security command dashboard</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-[#F5F3ED] mb-0.5">SentinelScan User Login</h1>
+            <p className="text-[#A7A39A] text-xs sm:text-sm">Sign in to your security command dashboard</p>
           </div>
 
           {/* Administrator Account Detected Notice */}
@@ -181,21 +183,21 @@ function LoginPageInner() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mb-6 overflow-hidden"
+                className="mb-4 overflow-hidden"
               >
                 <div
                   role="alert"
-                  className="p-4 rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/10 flex flex-col items-center text-center gap-3 shadow-[0_0_15px_rgba(212,175,55,0.15)]"
+                  className="p-3.5 rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/10 flex flex-col items-center text-center gap-2.5 shadow-[0_0_15px_rgba(212,175,55,0.15)]"
                 >
-                  <ShieldAlert className="w-6 h-6 text-[#D4AF37]" aria-hidden />
+                  <ShieldAlert className="w-5 h-5 text-[#D4AF37]" aria-hidden />
                   <div>
                     <h2 className="text-[#D4AF37] font-semibold text-sm mb-1">Administrator Account Detected</h2>
-                    <p className="text-[#F5F3ED]/90 text-xs mb-3 leading-relaxed">
+                    <p className="text-[#F5F3ED]/90 text-xs mb-2.5 leading-relaxed">
                       This is an administrator account. Please use Admin Login to access the management portal.
                     </p>
                     <Link
                       href="/admin/login?forceLogin=true"
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[#D4AF37] hover:bg-[#F5F3ED] text-[#070707] font-semibold text-xs transition-all shadow-[0_0_12px_rgba(212,175,55,0.3)]"
+                      className="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg bg-[#D4AF37] hover:bg-[#F5F3ED] text-[#070707] font-semibold text-xs transition-all shadow-[0_0_12px_rgba(212,175,55,0.3)]"
                     >
                       Go to Admin Login &rarr;
                     </Link>
@@ -212,16 +214,16 @@ function LoginPageInner() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mb-6 overflow-hidden"
+                className="mb-4 overflow-hidden"
               >
                 <div
                   role="alert"
-                  className="p-4 rounded-xl border border-orange-500/30 bg-orange-500/10 flex flex-col items-center text-center gap-3"
+                  className="p-3.5 rounded-xl border border-orange-500/30 bg-orange-500/10 flex flex-col items-center text-center gap-2.5"
                 >
                   <AlertTriangle className="w-5 h-5 text-orange-400" aria-hidden />
                   <div>
                     <h2 className="text-orange-400 font-semibold text-sm mb-1">Email verification required</h2>
-                    <p className="text-[#F5F3ED]/80 text-xs mb-4">
+                    <p className="text-[#F5F3ED]/80 text-xs mb-3">
                       Verify your email before signing in to SentinelScan.
                     </p>
                     <Button
@@ -247,7 +249,7 @@ function LoginPageInner() {
             onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }}
             method="POST"
             action="#"
-            className="space-y-5"
+            className="space-y-3 sm:space-y-3.5"
             noValidate
           >
             {/* Email */}
@@ -283,7 +285,7 @@ function LoginPageInner() {
             />
 
             {/* Remember me + Forgot password */}
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-4 pt-0.5">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   {...register('remember_me')}
@@ -291,11 +293,11 @@ function LoginPageInner() {
                   id="remember-me"
                   className="w-4 h-4 rounded border-[#2A2A2A] bg-[#0D0D0D] accent-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/40"
                 />
-                <span className="text-sm text-[#A7A39A]">Remember me</span>
+                <span className="text-xs sm:text-sm text-[#A7A39A]">Remember me</span>
               </label>
               <Link
                 href="/forgot-password"
-                className="text-sm text-[#D4AF37] hover:text-[#F5F3ED] transition-colors"
+                className="text-xs sm:text-sm text-[#D4AF37] hover:text-[#F5F3ED] transition-colors"
               >
                 Forgot password?
               </Link>
@@ -305,18 +307,19 @@ function LoginPageInner() {
             <Button
               type="submit"
               variant="primary"
-              size="lg"
+              size="md"
               loading={loading}
               rightIcon={loading ? undefined : ArrowRight}
               leftIcon={loading ? undefined : Zap}
               fullWidth
+              className="mt-1 h-10 font-bold"
             >
               {loading ? 'Signing in…' : 'Sign In'}
             </Button>
           </form>
 
           {/* Divider */}
-          <div className="relative my-6" aria-hidden>
+          <div className="relative my-2.5 sm:my-3" aria-hidden>
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-[#2A2A2A]" />
             </div>
@@ -328,7 +331,7 @@ function LoginPageInner() {
           {/* Google OAuth */}
           <a
             href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/google`}
-            className="w-full flex items-center justify-center gap-3 px-4 h-10 rounded-[10px] border border-[#2A2A2A] hover:bg-[#161616] text-[#F5F3ED] text-sm font-medium transition-all focus-visible:outline-2 focus-visible:outline-[#D4AF37]/50"
+            className="w-full flex items-center justify-center gap-3 px-4 h-9 sm:h-10 rounded-[10px] border border-[#2A2A2A] hover:bg-[#161616] text-[#F5F3ED] text-sm font-medium transition-all focus-visible:outline-2 focus-visible:outline-[#D4AF37]/50"
           >
             <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" aria-hidden>
               <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z" />
@@ -339,15 +342,15 @@ function LoginPageInner() {
             Google
           </a>
 
-          <p className="mt-6 text-center text-sm text-[#706C64]">
+          <p className="mt-2.5 sm:mt-3 text-center text-xs sm:text-sm text-[#706C64]">
             Don&apos;t have an account?{' '}
             <Link href="/signup" className="text-[#D4AF37] hover:text-[#F5F3ED] font-medium transition-colors">
               Create one free
             </Link>
           </p>
 
-          <div className="mt-5 pt-4 border-t border-[#2A2A2A] text-center">
-            <p className="text-xs text-[#706C64]">
+          <div className="mt-2.5 pt-2 sm:mt-3 sm:pt-2.5 border-t border-[#2A2A2A] text-center">
+            <p className="text-[11px] sm:text-xs text-[#706C64]">
               System Administrator?{' '}
               <Link href="/admin/login?forceLogin=true" className="text-[#D4AF37] hover:underline font-medium inline-flex items-center gap-1 ml-1">
                 <Shield className="w-3 h-3 text-[#D4AF37]" /> Admin Login &rarr;

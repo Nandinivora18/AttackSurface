@@ -135,11 +135,11 @@ export default function LandingPage() {
       <SplashCursor
         RAINBOW_MODE={false}
         COLOR="#D4AF37"
-        SPLAT_RADIUS={0.22}
-        SPLAT_FORCE={4500}
-        DENSITY_DISSIPATION={3.5}
-        VELOCITY_DISSIPATION={2.0}
-        CURL={2.2}
+        SPLAT_RADIUS={0.15}
+        SPLAT_FORCE={3600}
+        DENSITY_DISSIPATION={3.8}
+        VELOCITY_DISSIPATION={2.2}
+        CURL={2.0}
       />
       <LandingNavbar />
 

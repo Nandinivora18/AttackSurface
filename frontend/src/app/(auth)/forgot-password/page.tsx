@@ -35,12 +35,14 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070707] flex items-center justify-center px-4 hero-grid relative overflow-hidden">
-      <div className="absolute top-1/3 left-1/3 w-80 h-80 bg-[#5C4A20]/10 rounded-full blur-3xl pointer-events-none" aria-hidden />
+    <div className="min-h-[100dvh] bg-[#070707] flex items-center justify-center px-4 py-3 sm:py-5 hero-grid relative">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
+        <div className="absolute top-1/3 left-1/3 w-80 h-80 bg-[#5C4A20]/10 rounded-full blur-3xl" />
+      </div>
 
-      <div className="w-full max-w-md relative z-10 page-enter">
-        <Link href="/" className="flex items-center justify-center gap-2.5 mb-8" aria-label="SentinelScan home">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1A1A1A] to-[#0D0D0D] border border-[#5C4A20] flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)]">
+      <div className="w-full max-w-md relative z-10 page-enter my-auto">
+        <Link href="/" className="flex items-center justify-center gap-2.5 mb-3 sm:mb-4" aria-label="SentinelScan home">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#1A1A1A] to-[#0D0D0D] border border-[#5C4A20] flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)]">
             <Shield className="w-5 h-5 text-[#D4AF37]" aria-hidden />
           </div>
           <span className="text-xl font-bold text-[#F5F3ED]">
@@ -48,14 +50,14 @@ export default function ForgotPasswordPage() {
           </span>
         </Link>
 
-        <div className="glass-card p-8 border border-[#2A2A2A] bg-[#111111]">
+        <div className="glass-card px-5 py-4 sm:px-6 sm:py-5 border border-[#2A2A2A] bg-[#111111]">
           {sent ? (
             <div className="text-center">
-              <div className="w-14 h-14 rounded-full bg-green-500/15 border border-green-500/25 flex items-center justify-center mx-auto mb-5">
-                <CheckCircle className="w-7 h-7 text-[#4FAF72]" aria-hidden />
+              <div className="w-12 h-12 rounded-full bg-green-500/15 border border-green-500/25 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-6 h-6 text-[#4FAF72]" aria-hidden />
               </div>
-              <h1 className="text-2xl font-bold text-[#F5F3ED] mb-3">Reset Link Sent</h1>
-              <p className="text-[#A7A39A] text-sm mb-8 leading-relaxed">
+              <h1 className="text-xl sm:text-2xl font-bold text-[#F5F3ED] mb-2">Reset Link Sent</h1>
+              <p className="text-[#A7A39A] text-xs sm:text-sm mb-6 leading-relaxed">
                 If an account exists with that email, you&apos;ll receive a password reset link shortly.
               </p>
               <Link href="/login?forceLogin=true">
@@ -66,19 +68,19 @@ export default function ForgotPasswordPage() {
             </div>
           ) : (
             <>
-              <div className="text-center mb-8">
-                <div className="w-12 h-12 rounded-xl bg-[#5C4A20]/20 border border-[#5C4A20] flex items-center justify-center mx-auto mb-4">
-                  <Mail className="w-6 h-6 text-[#D4AF37]" aria-hidden />
+              <div className="text-center mb-4 sm:mb-5">
+                <div className="w-10 h-10 rounded-xl bg-[#5C4A20]/20 border border-[#5C4A20] flex items-center justify-center mx-auto mb-3">
+                  <Mail className="w-5 h-5 text-[#D4AF37]" aria-hidden />
                 </div>
-                <h1 className="text-2xl font-bold text-[#F5F3ED] mb-2">Forgot Password?</h1>
-                <p className="text-[#A7A39A] text-sm">Enter your email and we&apos;ll send a reset link.</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-[#F5F3ED] mb-1">Forgot Password?</h1>
+                <p className="text-[#A7A39A] text-xs sm:text-sm">Enter your email and we&apos;ll send a reset link.</p>
               </div>
 
               <form
                 onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }}
                 method="POST"
                 action="#"
-                className="space-y-5"
+                className="space-y-3.5 sm:space-y-4"
                 noValidate
               >
                 <Input
@@ -94,18 +96,19 @@ export default function ForgotPasswordPage() {
                 <Button
                   type="submit"
                   variant="primary"
-                  size="lg"
+                  size="md"
                   loading={loading}
                   fullWidth
+                  className="h-10 font-bold mt-1"
                 >
                   {loading ? 'Sending…' : 'Send Reset Link'}
                 </Button>
               </form>
 
-              <div className="mt-6 text-center">
+              <div className="mt-4 text-center">
                 <Link
                   href="/login?forceLogin=true"
-                  className="text-sm text-[#706C64] hover:text-[#F5F3ED] inline-flex items-center gap-1 transition-colors"
+                  className="text-xs sm:text-sm text-[#706C64] hover:text-[#F5F3ED] inline-flex items-center gap-1 transition-colors"
                 >
                   <ArrowLeft className="w-3 h-3" aria-hidden /> Back to Sign In
                 </Link>

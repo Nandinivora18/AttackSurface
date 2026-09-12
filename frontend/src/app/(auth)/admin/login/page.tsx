@@ -103,32 +103,34 @@ function AdminLoginPageInner() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070707] flex items-center justify-center px-4 hero-grid relative overflow-hidden">
+    <div className="min-h-[100dvh] bg-[#070707] flex items-center justify-center px-4 py-3 sm:py-5 hero-grid relative">
       {/* Ambient security glows - Rich gold and deep amber */}
-      <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-[#D4AF37]/8 rounded-full blur-3xl pointer-events-none" aria-hidden />
-      <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-[#5C4A20]/15 rounded-full blur-3xl pointer-events-none" aria-hidden />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
+        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-[#D4AF37]/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-[#5C4A20]/15 rounded-full blur-3xl" />
+      </div>
 
-      <div className="w-full max-w-md relative z-10 page-enter py-12">
+      <div className="w-full max-w-md relative z-10 page-enter my-auto">
         {/* Brand Logo with Admin Badge */}
-        <div className="flex flex-col items-center justify-center gap-3 mb-8">
+        <div className="flex flex-col items-center justify-center gap-2 mb-3 sm:mb-4">
           <Link href="/" className="flex items-center gap-2.5 group" aria-label="SentinelScan home">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#1A1A1A] to-[#0D0D0D] border-2 border-[#D4AF37] flex items-center justify-center shadow-[0_0_20px_rgba(212,175,55,0.3)]">
-              <Shield className="w-6 h-6 text-[#D4AF37]" aria-hidden />
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#1A1A1A] to-[#0D0D0D] border-2 border-[#D4AF37] flex items-center justify-center shadow-[0_0_20px_rgba(212,175,55,0.3)]">
+              <Shield className="w-5 h-5 text-[#D4AF37]" aria-hidden />
             </div>
-            <span className="text-2xl font-bold text-[#F5F3ED]">
+            <span className="text-xl sm:text-2xl font-bold text-[#F5F3ED]">
               Sentinel<span className="text-[#D4AF37]">Scan</span>
             </span>
           </Link>
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10 text-[#D4AF37] text-[11px] font-bold tracking-widest uppercase shadow-[0_0_10px_rgba(212,175,55,0.15)]">
-            <KeyRound className="w-3.5 h-3.5 text-[#D4AF37]" />
+          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10 text-[#D4AF37] text-[10px] sm:text-[11px] font-bold tracking-widest uppercase shadow-[0_0_10px_rgba(212,175,55,0.15)]">
+            <KeyRound className="w-3 h-3 text-[#D4AF37]" />
             Administrator Access
           </div>
         </div>
 
         {/* Card */}
-        <div className="glass-card p-8 border border-[#5C4A20]/40 bg-[#0E0E0E]/95 shadow-[0_12px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(212,175,55,0.08)]">
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-[#F5F3ED] mb-2 tracking-tight">Admin Command Center</h1>
+        <div className="glass-card px-5 py-4 sm:px-6 sm:py-5 border border-[#5C4A20]/40 bg-[#0E0E0E]/95 shadow-[0_12px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(212,175,55,0.08)]">
+          <div className="text-center mb-3 sm:mb-4">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#F5F3ED] mb-0.5 tracking-tight">Admin Command Center</h1>
             <p className="text-[#A7A39A] text-xs leading-relaxed">
               Restricted administrative portal for authorized security operators only
             </p>
@@ -141,21 +143,21 @@ function AdminLoginPageInner() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mb-6 overflow-hidden"
+                className="mb-4 overflow-hidden"
               >
                 <div
                   role="alert"
-                  className="p-4 rounded-xl border border-red-500/40 bg-red-500/10 flex flex-col items-center text-center gap-3 shadow-[0_0_15px_rgba(239,68,68,0.15)]"
+                  className="p-3.5 rounded-xl border border-red-500/40 bg-red-500/10 flex flex-col items-center text-center gap-2.5 shadow-[0_0_15px_rgba(239,68,68,0.15)]"
                 >
                   <AlertTriangle className="w-5 h-5 text-[#EF4444]" aria-hidden />
                   <div>
                     <h2 className="text-[#EF4444] font-semibold text-sm mb-1">Access Denied</h2>
-                    <p className="text-[#F5F3ED]/80 text-xs mb-3 leading-relaxed">
+                    <p className="text-[#F5F3ED]/80 text-xs mb-2.5 leading-relaxed">
                       {accessDeniedMessage}
                     </p>
                     <Link
                       href="/login?forceLogin=true"
-                      className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[#2A2A2A] hover:bg-[#333333] text-[#F5F3ED] text-xs font-semibold transition-colors"
+                      className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-lg bg-[#2A2A2A] hover:bg-[#333333] text-[#F5F3ED] text-xs font-semibold transition-colors"
                     >
                       Go to User Login &rarr;
                     </Link>
@@ -166,10 +168,10 @@ function AdminLoginPageInner() {
           </AnimatePresence>
 
           {/* Compliance & Audit Banner */}
-          <div className="mb-6 p-3 rounded-lg border border-[#2A2A2A] bg-[#141414]/60 flex items-start gap-2.5">
-            <Terminal className="w-4 h-4 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+          <div className="mb-3.5 p-2.5 rounded-lg border border-[#2A2A2A] bg-[#141414]/60 flex items-start gap-2">
+            <Terminal className="w-3.5 h-3.5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
             <p className="text-[11px] text-[#A7A39A] leading-normal">
-              <strong className="text-[#F5F3ED]">Restricted System:</strong> Administrator authentication is protected by server-side role validation. Successful sign-in events are recorded in the system audit log.
+              <strong className="text-[#F5F3ED]">Restricted System:</strong> Sign-ins are validated via server-side role authority and recorded in audit logs.
             </p>
           </div>
 
@@ -177,7 +179,7 @@ function AdminLoginPageInner() {
             onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }}
             method="POST"
             action="#"
-            className="space-y-5"
+            className="space-y-3 sm:space-y-3.5"
             noValidate
           >
             {/* Admin Email */}
@@ -213,7 +215,7 @@ function AdminLoginPageInner() {
             />
 
             {/* Remember me */}
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-4 pt-0.5">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   {...register('remember_me')}
@@ -235,19 +237,19 @@ function AdminLoginPageInner() {
             <Button
               type="submit"
               variant="primary"
-              size="lg"
+              size="md"
               loading={loading}
               rightIcon={loading ? undefined : ArrowRight}
               leftIcon={loading ? undefined : ShieldCheck}
               fullWidth
-              className="font-bold tracking-wide shadow-[0_0_15px_rgba(212,175,55,0.25)]"
+              className="font-bold tracking-wide shadow-[0_0_15px_rgba(212,175,55,0.25)] h-10 mt-1"
             >
               {loading ? 'Verifying Authority…' : 'Admin Sign In'}
             </Button>
           </form>
 
           {/* Navigation link to standard user login */}
-          <div className="mt-6 pt-5 border-t border-[#2A2A2A] text-center">
+          <div className="mt-3 pt-2.5 sm:mt-3.5 sm:pt-3 border-t border-[#2A2A2A] text-center">
             <p className="text-xs text-[#706C64]">
               Not an administrator?{' '}
               <Link href="/login?forceLogin=true" className="text-[#D4AF37] hover:underline font-medium inline-flex items-center gap-1 ml-1">

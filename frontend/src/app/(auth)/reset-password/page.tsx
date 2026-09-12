@@ -102,12 +102,14 @@ function ResetPasswordInner() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070707] flex items-center justify-center px-4 hero-grid relative overflow-hidden">
-      <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-[#5C4A20]/10 rounded-full blur-3xl pointer-events-none" aria-hidden />
+    <div className="min-h-[100dvh] bg-[#070707] flex items-center justify-center px-4 py-3 sm:py-5 hero-grid relative">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
+        <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-[#5C4A20]/10 rounded-full blur-3xl" />
+      </div>
 
-      <div className="w-full max-w-md relative z-10 page-enter">
-        <Link href="/" className="flex items-center justify-center gap-2.5 mb-8" aria-label="SentinelScan home">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1A1A1A] to-[#0D0D0D] border border-[#5C4A20] flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)]">
+      <div className="w-full max-w-md relative z-10 page-enter my-auto">
+        <Link href="/" className="flex items-center justify-center gap-2.5 mb-3 sm:mb-4" aria-label="SentinelScan home">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#1A1A1A] to-[#0D0D0D] border border-[#5C4A20] flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)]">
             <Shield className="w-5 h-5 text-[#D4AF37]" aria-hidden />
           </div>
           <span className="text-xl font-bold text-[#F5F3ED]">
@@ -115,17 +117,17 @@ function ResetPasswordInner() {
           </span>
         </Link>
 
-        <div className="glass-card p-8 border border-[#2A2A2A] bg-[#111111]">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-[#F5F3ED] mb-2">Set New Password</h1>
-            <p className="text-[#A7A39A] text-sm">Enter your new password below</p>
+        <div className="glass-card px-5 py-4 sm:px-6 sm:py-5 border border-[#2A2A2A] bg-[#111111]">
+          <div className="text-center mb-3 sm:mb-4">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#F5F3ED] mb-0.5">Set New Password</h1>
+            <p className="text-[#A7A39A] text-xs sm:text-sm">Enter your new password below</p>
           </div>
 
           <form
             onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }}
             method="POST"
             action="#"
-            className="space-y-4"
+            className="space-y-3 sm:space-y-3.5"
             noValidate
           >
             {/* New password */}
@@ -151,7 +153,7 @@ function ResetPasswordInner() {
               />
 
               {/* Strength indicators */}
-              <div className="mt-2 flex gap-4">
+              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
                 {PASSWORD_RULES.map((r) => {
                   const ok = r.test(password);
                   return (
@@ -183,16 +185,17 @@ function ResetPasswordInner() {
             <Button
               type="submit"
               variant="primary"
-              size="lg"
+              size="md"
               loading={isSubmitting}
               leftIcon={Lock}
               fullWidth
+              className="h-10 font-bold mt-1"
             >
               {isSubmitting ? 'Resetting…' : 'Reset Password'}
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-[#706C64]">
+          <p className="mt-3 text-center text-xs sm:text-sm text-[#706C64]">
             Remember your password?{' '}
             <Link href="/login?forceLogin=true" className="text-[#D4AF37] hover:text-[#F5F3ED] font-medium transition-colors">
               Sign in

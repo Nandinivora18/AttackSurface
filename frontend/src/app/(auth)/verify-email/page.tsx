@@ -32,20 +32,22 @@ function VerifyEmailInner() {
   }, [searchParams]);
 
   return (
-    <div className="min-h-screen bg-[#070707] flex items-center justify-center px-4 hero-grid relative overflow-hidden">
-      <div className="absolute top-1/3 left-1/3 w-80 h-80 bg-[#5C4A20]/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-[100dvh] bg-[#070707] flex items-center justify-center px-4 py-3 sm:py-5 hero-grid relative">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
+        <div className="absolute top-1/3 left-1/3 w-80 h-80 bg-[#5C4A20]/10 rounded-full blur-3xl" />
+      </div>
 
-      <div className="w-full max-w-md relative z-10 page-enter">
-        <Link href="/" className="flex items-center justify-center gap-2.5 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1A1A1A] to-[#0D0D0D] border border-[#5C4A20] flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)]">
-            <Shield className="w-5 h-5 text-[#D4AF37]" />
+      <div className="w-full max-w-md relative z-10 page-enter my-auto">
+        <Link href="/" className="flex items-center justify-center gap-2.5 mb-3 sm:mb-4">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#1A1A1A] to-[#0D0D0D] border border-[#5C4A20] flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)]">
+            <Shield className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#D4AF37]" />
           </div>
           <span className="text-xl font-bold text-[#F5F3ED]">
             Sentinel<span className="text-[#D4AF37]">Scan</span>
           </span>
         </Link>
 
-        <div className="glass-card p-10 text-center border border-[#2A2A2A] bg-[#111111]">
+        <div className="glass-card px-5 py-6 sm:px-8 sm:py-8 text-center border border-[#2A2A2A] bg-[#111111]">
           {status === 'loading' && (
             <>
               <div className="w-16 h-16 rounded-full bg-[#5C4A20]/20 flex items-center justify-center mx-auto mb-6">

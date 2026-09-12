@@ -107,12 +107,14 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070707] flex items-center justify-center px-4 py-12 hero-grid relative overflow-hidden">
-      <div className="absolute top-1/4 right-1/4 w-80 h-80 bg-[#5C4A20]/10 rounded-full blur-3xl pointer-events-none" aria-hidden />
+    <div className="min-h-[100dvh] bg-[#070707] flex items-center justify-center px-4 py-3 sm:py-5 hero-grid relative">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
+        <div className="absolute top-1/4 right-1/4 w-80 h-80 bg-[#5C4A20]/10 rounded-full blur-3xl" />
+      </div>
 
-      <div className="w-full max-w-md relative z-10 page-enter">
-        <Link href="/" className="flex items-center justify-center gap-2.5 mb-8" aria-label="SentinelScan home">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1A1A1A] to-[#0D0D0D] border border-[#5C4A20] flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)]">
+      <div className="w-full max-w-md relative z-10 page-enter my-auto">
+        <Link href="/" className="flex items-center justify-center gap-2.5 mb-3 sm:mb-4" aria-label="SentinelScan home">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#1A1A1A] to-[#0D0D0D] border border-[#5C4A20] flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)]">
             <Shield className="w-5 h-5 text-[#D4AF37]" aria-hidden />
           </div>
           <span className="text-xl font-bold text-[#F5F3ED]">
@@ -120,17 +122,17 @@ export default function SignupPage() {
           </span>
         </Link>
 
-        <div className="glass-card p-8 border border-[#2A2A2A] bg-[#111111]">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-[#F5F3ED] mb-2">Create your account</h1>
-            <p className="text-[#A7A39A] text-sm">Start assessing your attack surface for free</p>
+        <div className="glass-card px-5 py-4 sm:px-6 sm:py-5 border border-[#2A2A2A] bg-[#111111]">
+          <div className="text-center mb-3 sm:mb-4">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#F5F3ED] mb-0.5">Create your account</h1>
+            <p className="text-[#A7A39A] text-xs sm:text-sm">Start assessing your attack surface for free</p>
           </div>
 
           <form
             onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }}
             method="POST"
             action="#"
-            className="space-y-4"
+            className="space-y-2.5 sm:space-y-3"
             noValidate
           >
             {/* Full name */}
@@ -178,7 +180,7 @@ export default function SignupPage() {
               />
 
               {/* Inline password strength indicators */}
-              <div className="mt-2 flex gap-4">
+              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
                 {PASSWORD_RULES.map((r) => {
                   const ok = r.test(password);
                   return (
@@ -210,17 +212,17 @@ export default function SignupPage() {
             <Button
               type="submit"
               variant="primary"
-              size="lg"
+              size="md"
               loading={loading}
               fullWidth
-              className="mt-2"
+              className="mt-1.5 h-10 font-bold"
             >
               {loading ? 'Creating account…' : 'Create Free Account'}
             </Button>
           </form>
 
           {/* Divider */}
-          <div className="relative my-6" aria-hidden>
+          <div className="relative my-2.5 sm:my-3" aria-hidden>
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-[#2A2A2A]" />
             </div>
@@ -232,7 +234,7 @@ export default function SignupPage() {
           {/* Google OAuth */}
           <a
             href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/google`}
-            className="w-full flex items-center justify-center gap-3 px-4 h-10 rounded-[10px] border border-[#2A2A2A] hover:bg-[#161616] text-[#F5F3ED] text-sm font-medium transition-all"
+            className="w-full flex items-center justify-center gap-3 px-4 h-9 sm:h-10 rounded-[10px] border border-[#2A2A2A] hover:bg-[#161616] text-[#F5F3ED] text-sm font-medium transition-all"
           >
             <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" aria-hidden>
               <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z" />
@@ -243,7 +245,7 @@ export default function SignupPage() {
             Google
           </a>
 
-          <p className="mt-6 text-center text-sm text-[#706C64]">
+          <p className="mt-2.5 sm:mt-3 text-center text-xs sm:text-sm text-[#706C64]">
             Already have an account?{' '}
             <Link href="/login?forceLogin=true" className="text-[#D4AF37] hover:text-[#F5F3ED] font-medium transition-colors">
               Sign in
