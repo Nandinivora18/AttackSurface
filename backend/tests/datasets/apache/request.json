@@ -1,0 +1,11 @@
+{
+  "_description": "Apache httpd 2.4.x typical response — version disclosure in Server header, no security headers",
+  "headers": {
+    "server": "Apache/2.4.51 (Ubuntu)",
+    "content-type": "text/html; charset=UTF-8",
+    "date": "Wed, 07 Aug 2026 12:00:00 GMT",
+    "vary": "Accept-Encoding"
+  },
+  "status_code": 200,
+  "body_preview": "<!DOCTYPE html><html><head><title>Apache2 Default Page</title></head><body><h1>It works!</h1></body></html>"
+}

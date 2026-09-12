@@ -1,0 +1,25 @@
+# Secrets
+.env
+.env.*
+!.env.example
+.env.local
+
+# Node artifacts
+node_modules/
+.next/
+out/
+build/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# TypeScript cache
+tsconfig.tsbuildinfo
+
+# Git
+.git/
+.gitignore

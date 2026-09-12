@@ -1,0 +1,19 @@
+{
+  "_description": "WordPress site with typical response headers including X-Powered-By, generator meta, and missing security headers",
+  "headers": {
+    "server": "Apache",
+    "content-type": "text/html; charset=UTF-8",
+    "x-powered-by": "PHP/8.1.12",
+    "link": "<https://example.com/wp-json/>; rel=\"https://api.w.org/\"",
+    "x-pingback": "https://example.com/xmlrpc.php"
+  },
+  "status_code": 200,
+  "body_preview": "<!DOCTYPE html><html><head><meta name='generator' content='WordPress 6.3.1' /><title>My Blog</title></head><body><h1>Hello World</h1></body></html>",
+  "cookies": [
+    {
+      "name": "wordpress_test_cookie",
+      "value": "WP+Cookie+check",
+      "flags": ["HttpOnly"]
+    }
+  ]
+}

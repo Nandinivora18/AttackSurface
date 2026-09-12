@@ -1,0 +1,26 @@
+{
+  "_description": "Expected results for hardened nginx: Server header 'nginx' must NOT trigger version disclosure. Security headers present must NOT generate missing-header findings.",
+  "expected_findings": [],
+  "must_not_detect": [
+    {
+      "category": "Information Disclosure",
+      "title_contains": "Server Version Disclosure",
+      "rationale": "FP regression: 'nginx' (no version) must NOT be flagged as version disclosure. Only 'nginx/1.20.1' format triggers the finding. This was a confirmed historical false positive."
+    },
+    {
+      "category": "Transport Security",
+      "title_contains": "Missing HTTP Strict Transport Security",
+      "rationale": "HSTS header is present and valid — must not be reported missing."
+    },
+    {
+      "category": "Clickjacking Protection",
+      "title_contains": "X-Frame-Options",
+      "rationale": "CSP frame-ancestors 'none' is present — X-Frame-Options suppression must fire (XFO is the deprecated fallback when CSP frame-ancestors is set)."
+    },
+    {
+      "category": "Injection Prevention",
+      "title_contains": "Content Security Policy",
+      "rationale": "CSP is present — must not report missing CSP."
+    }
+  ]
+}

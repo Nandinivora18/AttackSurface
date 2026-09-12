@@ -1,0 +1,19 @@
+{
+  "_description": "Soft-404 dataset: site returns 200 OK with 'Page Not Found' body for missing paths. Historical FP: content_analyzer was incorrectly flagging these as genuine exposed files.",
+  "headers": {
+    "content-type": "text/html; charset=utf-8",
+    "server": "nginx"
+  },
+  "baseline_response": {
+    "status_code": 200,
+    "content_type": "text/html",
+    "body": "<!DOCTYPE html><html><head><title>Page Not Found - ExampleCo</title></head><body><h1>Oops! That page doesn't exist.</h1><p>Return to <a href='/'>home</a></p></body></html>",
+    "final_url_path": "/sentinelscan-nonexistent-probe-12345"
+  },
+  "probe_response": {
+    "status_code": 200,
+    "content_type": "text/html",
+    "body": "<!DOCTYPE html><html><head><title>Page Not Found - ExampleCo</title></head><body><h1>Oops! That page doesn't exist.</h1><p>Return to <a href='/'>home</a></p></body></html>",
+    "probed_path": "/.env"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "_description": "Nginx 1.20.x with full security header suite — well-hardened server, should produce minimal findings",
+  "headers": {
+    "server": "nginx",
+    "content-type": "text/html; charset=utf-8",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'",
+    "x-content-type-options": "nosniff",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "permissions-policy": "camera=(), microphone=(), geolocation=()",
+    "x-xss-protection": "1; mode=block",
+    "cross-origin-opener-policy": "same-origin"
+  },
+  "status_code": 200,
+  "body_preview": "<!DOCTYPE html><html lang='en'><head><title>Secure Site</title></head><body><h1>Welcome</h1></body></html>"
+}

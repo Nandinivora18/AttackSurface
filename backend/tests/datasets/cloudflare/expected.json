@@ -1,0 +1,21 @@
+{
+  "_description": "Expected results for Cloudflare CDN dataset",
+  "expected_findings": [],
+  "must_not_detect": [
+    {
+      "category": "Information Disclosure",
+      "title_contains": "Server Version Disclosure",
+      "rationale": "FP regression: 'cloudflare' is a CDN service banner not a versioned server string. It appears in the BENIGN_SERVER_TOKENS allowlist and must never trigger server-version-disclosure."
+    },
+    {
+      "category": "Transport Security",
+      "title_contains": "Missing HTTP Strict Transport Security",
+      "rationale": "HSTS is present (max-age=15724800) — must not report as missing."
+    },
+    {
+      "category": "Injection Prevention",
+      "title_contains": "Missing Content Security Policy",
+      "rationale": "CSP header present (upgrade-insecure-requests) — must not report as missing CSP, even if the policy is weak."
+    }
+  ]
+}

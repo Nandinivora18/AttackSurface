@@ -1,0 +1,29 @@
+{
+  "_description": "Expected results for reverse proxy dataset: CSP with *.trusted-scripts.com must NOT be flagged as a wildcard CSP. Only standalone * (e.g. script-src *) is a full wildcard.",
+  "expected_findings": [
+    {
+      "category": "Injection Prevention",
+      "title_contains": "CSP",
+      "severity_at_most": "medium",
+      "must_detect": false,
+      "note": "CSP is present and not using standalone wildcard — img-src * could be flagged as a separate sub-issue but must not be classified as 'policy disabled'"
+    }
+  ],
+  "must_not_detect": [
+    {
+      "category": "Injection Prevention",
+      "title_contains": "CSP wildcard",
+      "rationale": "FP regression: *.trusted-scripts.com is a SUBDOMAIN WHITELIST, not a full wildcard. The CSP wildcard regex uses negative lookahead to exclude this. Must not be flagged."
+    },
+    {
+      "category": "Information Disclosure",
+      "title_contains": "Server Version Disclosure",
+      "rationale": "Server header is 'nginx' (no version) — must not be flagged as version disclosure."
+    },
+    {
+      "category": "Transport Security",
+      "title_contains": "Missing HTTP Strict Transport Security",
+      "rationale": "HSTS is present and valid."
+    }
+  ]
+}

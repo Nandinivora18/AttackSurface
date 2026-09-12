@@ -1,0 +1,25 @@
+{
+  "_description": "Expected results for Apache dataset: version disclosure MUST be detected, security headers MUST be flagged as missing",
+  "expected_findings": [
+    {
+      "category": "Information Disclosure",
+      "title_contains": "Server Version Disclosure",
+      "severity": "low",
+      "must_detect": true,
+      "rationale": "Apache/2.4.51 version exposed in Server header reveals exact patch level for attack planning (CWE-200)"
+    },
+    {
+      "category": "Transport Security",
+      "title_contains": "Strict-Transport-Security",
+      "severity": "high",
+      "must_detect": true,
+      "rationale": "HSTS header absent on HTTPS endpoint — SSL-strip attacks possible (RFC 6797)"
+    }
+  ],
+  "must_not_detect": [
+    {
+      "rationale": "FP regression: Apache server token without version (e.g. 'Apache') must NOT trigger version-disclosure finding. Only 'Apache/x.y.z' format triggers the finding.",
+      "condition": "server_header_is_vendor_only"
+    }
+  ]
+}

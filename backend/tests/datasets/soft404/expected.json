@@ -1,0 +1,11 @@
+{
+  "_description": "Expected: Soft-404 pattern must be detected — probe response matches baseline 'not found' page, so /.env must NOT generate a finding",
+  "expected_findings": [],
+  "must_not_detect": [
+    {
+      "category": "Credential Exposure",
+      "title_contains": "Exposed .env File",
+      "rationale": "FP regression: The probe response is identical to the site's custom 404 page (same title tokens, same body length class). Soft-404 baseline detection must suppress this finding. This was a confirmed historical false positive fixed in content_analyzer.py."
+    }
+  ]
+}

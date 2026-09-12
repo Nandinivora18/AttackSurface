@@ -1,0 +1,96 @@
+# SentinelScan — Root .gitignore
+
+# Environment files (contain secrets — NEVER commit)
+.env
+.env.*
+!.env.example
+!backend/.env.example
+.env.local
+.env.production
+.env.*.local
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+frontend/.env.local
+docker/.env
+docker/.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+pip-wheel-metadata/
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Database files (development SQLite DB)
+*.db
+*.sqlite
+*.sqlite3
+
+# Alembic migration cache
+backend/alembic/versions/__pycache__/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+coverage/
+htmlcov/
+.tox/
+.nox/
+
+# Generated QA & benchmark artifacts
+backend/benchmark_results.json
+backend/qa_images/
+backend/qa_pdfs/
+qa_images/
+qa_pdfs/
+qa_v3/
+qa_real/
+
+# Standalone PDF-inspection QA renderer outputs (backend/render_and_inspect_pdf.py, generated, mock-data only)
+backend/gls_page_*.png
+backend/gls_*.pdf
+
+# Node.js / Frontend
+node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/tsconfig.tsbuildinfo
+
+# IDE / Editor / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Docker secrets & certs
+*.pem
+*.key
+certs/
+
+# Distribution
+*.tar.gz
+*.zip
+
+# Logs
+logs/
+*.log
+

@@ -1,0 +1,32 @@
+{
+  "_description": "Expected results for WordPress dataset",
+  "expected_findings": [
+    {
+      "category": "Information Disclosure",
+      "title_contains": "PHP Version Disclosure",
+      "severity": "low",
+      "must_detect": true,
+      "rationale": "X-Powered-By: PHP/8.1.12 reveals exact PHP version (CWE-200, OWASP ASVS 14.3.3)"
+    },
+    {
+      "category": "Information Disclosure",
+      "title_contains": "WordPress",
+      "severity": "low",
+      "must_detect": true,
+      "rationale": "WordPress 6.3.1 version disclosed via <meta name='generator'> tag"
+    }
+  ],
+  "must_not_detect": [
+    {
+      "category": "Information Disclosure",
+      "title_contains": "Server Version Disclosure",
+      "rationale": "FP regression: Server header is 'Apache' (no version number) — must NOT trigger version disclosure. Only 'Apache/x.y.z' triggers it."
+    },
+    {
+      "category": "Cookie Security",
+      "title_contains": "Missing Secure",
+      "condition": "cookie_name_is_wordpress_test_cookie",
+      "rationale": "wordpress_test_cookie is a session probe cookie without sensitive data — should not generate high-severity findings."
+    }
+  ]
+}

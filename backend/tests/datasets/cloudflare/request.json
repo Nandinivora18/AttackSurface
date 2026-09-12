@@ -1,0 +1,14 @@
+{
+  "_description": "Cloudflare-proxied site — typical CF response with cf-ray, cf-cache-status. Historical FP: 'cloudflare' Server header was being flagged.",
+  "headers": {
+    "server": "cloudflare",
+    "content-type": "text/html; charset=utf-8",
+    "cf-ray": "8abc123def456-IAD",
+    "cf-cache-status": "HIT",
+    "cf-request-id": "0abc123456def",
+    "strict-transport-security": "max-age=15724800; includeSubDomains",
+    "content-security-policy": "upgrade-insecure-requests"
+  },
+  "status_code": 200,
+  "body_preview": "<!DOCTYPE html><html><head><title>Business Site</title></head><body><p>Hello</p></body></html>"
+}

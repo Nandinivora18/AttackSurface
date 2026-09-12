@@ -1,0 +1,17 @@
+{
+  "_description": "Expected results for Laravel/Cloudflare: XSRF-TOKEN must NOT alone trigger a high-confidence Laravel detection. Server 'cloudflare' must NOT trigger version disclosure.",
+  "expected_findings": [],
+  "must_not_detect": [
+    {
+      "category": "Information Disclosure",
+      "title_contains": "Server Version Disclosure",
+      "rationale": "FP regression: Server header 'cloudflare' is a CDN banner, NOT a version string. Must not be flagged."
+    },
+    {
+      "category": "Technology Detection",
+      "title_contains": "Laravel",
+      "confidence_above": 0.8,
+      "rationale": "FP regression: XSRF-TOKEN alone is insufficient evidence for high-confidence Laravel detection. Many frameworks use CSRF tokens with similar names. Confidence must remain below 60 for XSRF-TOKEN-only detection."
+    }
+  ]
+}

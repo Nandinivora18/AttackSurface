@@ -1,0 +1,14 @@
+{
+  "_description": "Reverse proxy (nginx in front of Node.js) — 'via' header present, no version in server. CSP wildcard subdomains (not standalone *) must NOT be flagged.",
+  "headers": {
+    "server": "nginx",
+    "via": "1.1 vegur",
+    "content-type": "text/html; charset=utf-8",
+    "strict-transport-security": "max-age=31536000; includeSubDomains",
+    "content-security-policy": "default-src 'self'; script-src 'self' https://cdn.example.com *.trusted-scripts.com; img-src *",
+    "x-content-type-options": "nosniff",
+    "referrer-policy": "no-referrer-when-downgrade"
+  },
+  "status_code": 200,
+  "body_preview": "<!DOCTYPE html><html><head><title>App</title></head><body><div id='root'></div></body></html>"
+}
