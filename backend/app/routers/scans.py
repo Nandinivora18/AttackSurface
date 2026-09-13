@@ -434,13 +434,25 @@ async def list_scans(
 
     scan_list = []
     for scan in scans:
-        report_result = await db.execute(select(Report).where(Report.scan_id == scan.id))
+        report_result = await db.execute(
+            select(Report)
+            .where(Report.scan_id == scan.id)
+            .options(selectinload(Report.findings))
+        )
         report = report_result.scalar_one_or_none()
         scan_data = ScanListResponse.model_validate(scan)
         if report:
             scan_data.overall_score = report.overall_score
             scan_data.grade = report.grade
             scan_data.report_id = report.id
+            open_findings = [f for f in report.findings if not getattr(f, "is_passed_control", False)]
+            scan_data.findings_count = len(open_findings)
+            breakdown = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
+            for f in open_findings:
+                sev = f.severity.value if hasattr(f.severity, "value") else str(f.severity).lower()
+                if sev in breakdown:
+                    breakdown[sev] += 1
+            scan_data.findings_breakdown = breakdown
         scan_list.append(scan_data)
 
     return scan_list

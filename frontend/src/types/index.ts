@@ -49,6 +49,8 @@ export interface Scan {
   grade?: Grade;
   report_id?: string;
   timeline?: StageTimelineItem[];
+  findings_count?: number;
+  findings_breakdown?: Record<string, number>;
   report?: {
     id?: string;
     overall_score?: number;

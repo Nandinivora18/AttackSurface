@@ -43,7 +43,7 @@ function SidebarItem({ href, icon: Icon, label, collapsed, badge }: SidebarItemP
       className={cn(
         'sidebar-item group relative text-xs font-medium py-2.5 px-3 rounded-[10px] transition-all duration-150 flex items-center gap-3',
         active
-          ? 'bg-[#161616] text-[#D4AF37] font-semibold border-l-2 border-[#D4AF37] rounded-l-none'
+          ? 'bg-gradient-to-r from-[#D4AF37]/15 to-[#161616]/40 text-[#D4AF37] font-semibold border-l-2 border-[#D4AF37] rounded-l-none shadow-[inset_0_0_12px_rgba(212,175,55,0.05)]'
           : 'text-[#A1A1A1] hover:text-[#F5F5F5] hover:bg-[#141414]',
         collapsed && 'justify-center px-2 rounded-[10px] border-l-0'
       )}
@@ -52,7 +52,7 @@ function SidebarItem({ href, icon: Icon, label, collapsed, badge }: SidebarItemP
       <Icon
         className={cn(
           'w-4 h-4 flex-shrink-0 transition-colors',
-          active ? 'text-[#D4AF37]' : 'text-[#6F6F6F] group-hover:text-[#F5F5F5]'
+          active ? 'text-[#D4AF37] drop-shadow-[0_0_6px_rgba(212,175,55,0.3)]' : 'text-[#6F6F6F] group-hover:text-[#F5F5F5]'
         )}
       />
       {!collapsed && <span className="flex-1 truncate">{label}</span>}

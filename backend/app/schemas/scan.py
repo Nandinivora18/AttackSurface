@@ -87,6 +87,8 @@ class ScanListResponse(BaseModel):
     grade: Optional[str] = None
     timeline: Optional[list] = None
     report_id: Optional[uuid.UUID] = None
+    findings_count: Optional[int] = None
+    findings_breakdown: Optional[dict[str, int]] = None
 
     model_config = {"from_attributes": True}
 
