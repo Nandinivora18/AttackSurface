@@ -11,24 +11,24 @@ interface SeverityBadgeProps {
 
 const SEVERITY_STYLES: Record<Severity, { dot: string; badge: string }> = {
   critical: {
-    dot:   'bg-[#EF4444] shadow-[0_0_5px_rgba(239,68,68,0.6)]',
-    badge: 'bg-red-500/15 text-[#EF4444] border border-red-500/30',
+    dot:   'bg-rose-600 dark:bg-[#EF4444] shadow-[0_0_5px_rgba(239,68,68,0.4)] dark:shadow-[0_0_5px_rgba(239,68,68,0.6)]',
+    badge: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-red-500/15 dark:text-[#EF4444] dark:border-red-500/30 border',
   },
   high: {
-    dot:   'bg-[#F97316] shadow-[0_0_5px_rgba(249,115,22,0.6)]',
-    badge: 'bg-orange-500/15 text-[#F97316] border border-orange-500/30',
+    dot:   'bg-amber-600 dark:bg-[#F97316] shadow-[0_0_5px_rgba(249,115,22,0.4)] dark:shadow-[0_0_5px_rgba(249,115,22,0.6)]',
+    badge: 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-orange-500/15 dark:text-[#F97316] dark:border-orange-500/30 border',
   },
   medium: {
-    dot:   'bg-[#F59E0B] shadow-[0_0_5px_rgba(245,158,11,0.6)]',
-    badge: 'bg-amber-500/15 text-[#F59E0B] border border-amber-500/30',
+    dot:   'bg-yellow-600 dark:bg-[#F59E0B] shadow-[0_0_5px_rgba(245,158,11,0.4)] dark:shadow-[0_0_5px_rgba(245,158,11,0.6)]',
+    badge: 'bg-yellow-50 text-yellow-800 border-yellow-200 dark:bg-amber-500/15 dark:text-[#F59E0B] dark:border-amber-500/30 border',
   },
   low: {
-    dot:   'bg-[#4FAF72] shadow-[0_0_5px_rgba(79,175,114,0.6)]',
-    badge: 'bg-green-500/15 text-[#4FAF72] border border-green-500/30',
+    dot:   'bg-emerald-600 dark:bg-[#4FAF72] shadow-[0_0_5px_rgba(79,175,114,0.4)] dark:shadow-[0_0_5px_rgba(79,175,114,0.6)]',
+    badge: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-green-500/15 dark:text-[#4FAF72] dark:border-green-500/30 border',
   },
   info: {
-    dot:   'bg-[#94A3B8]',
-    badge: 'bg-slate-500/15 text-[#94A3B8] border border-slate-500/30',
+    dot:   'bg-slate-500 dark:bg-[#94A3B8]',
+    badge: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-500/15 dark:text-[#94A3B8] dark:border-slate-500/30 border',
   },
 };
 

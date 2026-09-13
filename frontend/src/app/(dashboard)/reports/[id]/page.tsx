@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from 'next-themes';
 import {
   Download, ArrowLeft, Shield, ChevronDown, ChevronUp,
   ExternalLink, AlertTriangle, CheckCircle, Globe, Lock,
@@ -713,6 +714,13 @@ function findingMatchesCat(f: Finding, catKey: string): boolean {
 export default function ReportPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme !== 'light';
+  const chartGridStroke = isDark ? '#2A2A2A' : '#E5E7EB';
+  const chartTextFill = isDark ? '#706C64' : '#71717A';
+  const chartRadarStroke = isDark ? '#D4AF37' : '#B8860B';
+  const chartTooltipStyle = { background: '#18181B', border: isDark ? '1px solid #2A2A2A' : '1px solid #3F3F46', borderRadius: '8px', color: '#F5F3ED', fontSize: 11 };
+
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
@@ -1024,10 +1032,10 @@ export default function ReportPage() {
             <p className="text-xs font-semibold text-[#A7A39A] uppercase tracking-wider mb-3">Score comparison</p>
             <ResponsiveContainer width="100%" height={120}>
               <BarChart data={Object.entries(scoreBreakdown).map(([k, c]) => ({ name: c.label.split('/')[0].split(' ')[0], score: c.score, max: c.max, pct: c.pct, fill: CAT_COLORS[c.color] || '#D4AF37' }))} barSize={18}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" vertical={false} />
-                <XAxis dataKey="name" tick={{ fill: '#706C64', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis domain={[0, 100]} tick={{ fill: '#706C64', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: '#111111', border: '1px solid #2A2A2A', borderRadius: '8px', color: '#F5F3ED', fontSize: 11 }}
+                <CartesianGrid strokeDasharray="3 3" stroke={chartGridStroke} vertical={false} />
+                <XAxis dataKey="name" tick={{ fill: chartTextFill, fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis domain={[0, 100]} tick={{ fill: chartTextFill, fontSize: 10 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={chartTooltipStyle}
                   formatter={(val: any, name: any, props: any) => [`${props.payload.score}/${props.payload.max} (${props.payload.pct}%)`, 'Score']} />
                 <Bar dataKey="pct" radius={[4, 4, 0, 0]}>
                   {Object.entries(scoreBreakdown).map(([k, c]) => (
@@ -1139,8 +1147,8 @@ export default function ReportPage() {
           <h3 className="font-bold text-[#F5F3ED] mb-4">Security Coverage Radar</h3>
           <ResponsiveContainer width="100%" height={220}>
             <RadarChart data={scoreBreakdown ? Object.values(scoreBreakdown).map((c) => ({ subject: c.label.split('/')[0].split(' ')[0], score: c.pct })) : [{ subject: 'SSL', score: 50 }, { subject: 'Headers', score: 50 }, { subject: 'DNS', score: 50 }, { subject: 'Tech', score: 50 }, { subject: 'Content', score: 50 }]}>
-              <PolarGrid stroke="#2A2A2A" /><PolarAngleAxis dataKey="subject" tick={{ fill: '#706C64', fontSize: 11 }} />
-              <Radar name="Score" dataKey="score" stroke="#D4AF37" fill="#D4AF37" fillOpacity={0.2} strokeWidth={2} />
+              <PolarGrid stroke={chartGridStroke} /><PolarAngleAxis dataKey="subject" tick={{ fill: chartTextFill, fontSize: 11 }} />
+              <Radar name="Score" dataKey="score" stroke={chartRadarStroke} fill={chartRadarStroke} fillOpacity={0.2} strokeWidth={2} />
             </RadarChart>
           </ResponsiveContainer>
         </GlassCard>
@@ -1151,7 +1159,7 @@ export default function ReportPage() {
               <ResponsiveContainer width="60%" height={180}>
                 <PieChart><Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3} dataKey="value">
                   {pieData.map((entry) => <Cell key={entry.name} fill={SEV_COLORS[entry.name as Severity]} />)}
-                </Pie><Tooltip contentStyle={{ background: '#111111', border: '1px solid #2A2A2A', borderRadius: '8px', color: '#F5F3ED' }} /></PieChart>
+                </Pie><Tooltip contentStyle={chartTooltipStyle} /></PieChart>
               </ResponsiveContainer>
               <div className="flex-1 space-y-2">
                 {pieData.map((d) => (
@@ -1174,10 +1182,10 @@ export default function ReportPage() {
           <h3 className="font-bold text-[#F5F3ED] mb-4">Findings Count by Severity</h3>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={barData} barSize={36}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" vertical={false} />
-              <XAxis dataKey="severity" tick={{ fill: '#706C64', fontSize: 12 }} axisLine={false} tickLine={false} />
-              <YAxis allowDecimals={false} tick={{ fill: '#706C64', fontSize: 12 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: '#111111', border: '1px solid #2A2A2A', borderRadius: '8px', color: '#F5F3ED' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGridStroke} vertical={false} />
+              <XAxis dataKey="severity" tick={{ fill: chartTextFill, fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis allowDecimals={false} tick={{ fill: chartTextFill, fontSize: 12 }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={chartTooltipStyle} />
               <Bar dataKey="count" radius={[6, 6, 0, 0]}>
                 {barData.map((entry) => <Cell key={entry.severity} fill={entry.fill} />)}
               </Bar>

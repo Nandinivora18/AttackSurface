@@ -28,13 +28,13 @@ export default function LandingNavbar() {
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-[#070707]/90 backdrop-blur-xl border-b border-[#2A2A2A]/80 shadow-2xl'
+          ? 'bg-[#F7F6F2]/90 dark:bg-[#070707]/90 backdrop-blur-xl border-b border-[#E7E5DF] dark:border-[#2A2A2A]/80 shadow-md dark:shadow-2xl'
           : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
+        {/* Logo (offset for fixed top-left theme toggle) */}
+        <Link href="/" className="flex items-center gap-2.5 group pl-11 sm:pl-12">
           <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#1A1A1A] to-[#0D0D0D] border border-[#5C4A20] flex items-center justify-center shadow-[0_0_12px_rgba(212,175,55,0.15)] group-hover:shadow-[0_0_20px_rgba(212,175,55,0.3)] transition-all">
             <Shield className="w-5 h-5 text-[#D4AF37]" />
           </div>
@@ -84,7 +84,7 @@ export default function LandingNavbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-[#0D0D0D]/95 backdrop-blur-xl border-b border-[#2A2A2A]"
+            className="md:hidden bg-[#FFFFFF]/95 dark:bg-[#0D0D0D]/95 backdrop-blur-xl border-b border-[#E7E5DF] dark:border-[#2A2A2A]"
           >
             <div className="px-6 py-4 space-y-3">
               {NAV_LINKS.map((link) => (

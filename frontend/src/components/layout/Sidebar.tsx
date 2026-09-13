@@ -43,8 +43,8 @@ function SidebarItem({ href, icon: Icon, label, collapsed, badge }: SidebarItemP
       className={cn(
         'sidebar-item group relative text-xs font-medium py-2.5 px-3 rounded-[10px] transition-all duration-150 flex items-center gap-3',
         active
-          ? 'bg-[#161616] text-[#D4AF37] font-semibold border-l-2 border-[#D4AF37] rounded-l-none'
-          : 'text-[#A1A1A1] hover:text-[#F5F5F5] hover:bg-[#141414]',
+          ? 'bg-[#F4F3EE] dark:bg-[#161616] text-[#B8860B] dark:text-[#D4AF37] font-semibold border-l-2 border-[#B8860B] dark:border-[#D4AF37] rounded-l-none'
+          : 'text-[#71717A] dark:text-[#A1A1A1] hover:text-[#18181B] dark:hover:text-[#F5F5F5] hover:bg-[#F4F3EE] dark:hover:bg-[#141414]',
         collapsed && 'justify-center px-2 rounded-[10px] border-l-0'
       )}
       title={collapsed ? label : undefined}
@@ -52,7 +52,7 @@ function SidebarItem({ href, icon: Icon, label, collapsed, badge }: SidebarItemP
       <Icon
         className={cn(
           'w-4 h-4 flex-shrink-0 transition-colors',
-          active ? 'text-[#D4AF37]' : 'text-[#6F6F6F] group-hover:text-[#F5F5F5]'
+          active ? 'text-[#B8860B] dark:text-[#D4AF37]' : 'text-[#A1A1AA] dark:text-[#6F6F6F] group-hover:text-[#18181B] dark:group-hover:text-[#F5F5F5]'
         )}
       />
       {!collapsed && <span className="flex-1 truncate">{label}</span>}
@@ -80,30 +80,35 @@ export default function Sidebar() {
     <motion.aside
       animate={{ width: sidebarOpen ? 245 : 72 }}
       transition={{ duration: 0.25, ease: 'easeInOut' }}
-      className="fixed left-0 top-0 bottom-0 z-40 flex flex-col border-r border-[rgba(255,255,255,0.07)] bg-[#080808] overflow-hidden shadow-2xl"
+      className="fixed left-0 top-0 bottom-0 z-40 flex flex-col border-r border-[#E7E5DF] dark:border-[rgba(255,255,255,0.07)] bg-white dark:bg-[#080808] overflow-hidden shadow-sm dark:shadow-2xl transition-colors duration-200"
     >
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-4 h-16 border-b border-[rgba(255,255,255,0.07)] flex-shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-[#141414] border border-[rgba(212,175,55,0.3)] flex items-center justify-center shadow-[0_0_12px_rgba(212,175,55,0.15)] flex-shrink-0">
-          <Shield className="w-4 h-4 text-[#D4AF37]" />
-        </div>
+      {/* Logo & Header */}
+      <div className={cn(
+        "flex items-center h-16 border-b border-[#E7E5DF] dark:border-[rgba(255,255,255,0.07)] flex-shrink-0",
+        sidebarOpen ? "pl-12 pr-3 gap-2.5" : "justify-end pr-3.5"
+      )}>
+        {sidebarOpen && (
+          <div className="w-8 h-8 rounded-lg bg-[#F4F3EE] dark:bg-[#141414] border border-[#C6A15B]/30 dark:border-[rgba(212,175,55,0.3)] flex items-center justify-center shadow-[0_0_12px_rgba(212,175,55,0.15)] flex-shrink-0">
+            <Shield className="w-4 h-4 text-[#B8860B] dark:text-[#D4AF37]" />
+          </div>
+        )}
         <AnimatePresence>
           {sidebarOpen && (
             <motion.span
               initial={{ opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -6 }}
-              className="font-bold text-[#F5F5F5] whitespace-nowrap tracking-wider text-xs uppercase"
+              className="font-bold text-[#18181B] dark:text-[#F5F5F5] whitespace-nowrap tracking-wider text-xs uppercase truncate"
             >
-              Sentinel<span className="text-[#D4AF37]">Scan</span>
+              Sentinel<span className="text-[#B8860B] dark:text-[#D4AF37]">Scan</span>
             </motion.span>
           )}
         </AnimatePresence>
         <button
           onClick={toggleSidebar}
           className={cn(
-            'ml-auto p-1.5 rounded-lg text-[#6F6F6F] hover:text-[#F5F5F5] hover:bg-[#141414] transition-all flex-shrink-0',
-            !sidebarOpen && 'ml-0 absolute right-3.5 top-5'
+            'p-1.5 rounded-lg text-[#71717A] dark:text-[#6F6F6F] hover:text-[#18181B] dark:hover:text-[#F5F5F5] hover:bg-[#F4F3EE] dark:hover:bg-[#141414] transition-all flex-shrink-0',
+            sidebarOpen ? 'ml-auto' : 'ml-0'
           )}
           aria-label="Toggle sidebar"
         >
@@ -115,7 +120,7 @@ export default function Sidebar() {
       <nav className="flex-1 py-4 px-2 space-y-4 overflow-y-auto">
         {/* MAIN */}
         <div className="space-y-1">
-          {sidebarOpen && <p className="px-3 text-[10px] font-bold text-[#6F6F6F] uppercase tracking-wider mb-2">Workspace</p>}
+          {sidebarOpen && <p className="px-3 text-[10px] font-bold text-[#A1A1AA] dark:text-[#6F6F6F] uppercase tracking-wider mb-2">Workspace</p>}
           {MAIN_NAV.map((item) => (
             <SidebarItem key={item.href} {...item} collapsed={!sidebarOpen} />
           ))}
@@ -123,8 +128,8 @@ export default function Sidebar() {
 
         {/* ADMIN */}
         {user?.role === 'admin' && (
-          <div className="space-y-1 pt-3 border-t border-[rgba(255,255,255,0.06)]">
-            {sidebarOpen && <p className="px-3 text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider mb-2">Admin</p>}
+          <div className="space-y-1 pt-2 border-t border-[#E7E5DF] dark:border-[rgba(255,255,255,0.07)]">
+            {sidebarOpen && <p className="px-3 text-[10px] font-bold text-[#B8860B] dark:text-[#D4AF37] uppercase tracking-wider mb-2">Administration</p>}
             {ADMIN_NAV.map((item) => (
               <SidebarItem key={item.href} {...item} collapsed={!sidebarOpen} />
             ))}
@@ -133,7 +138,7 @@ export default function Sidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="border-t border-[rgba(255,255,255,0.07)] px-2 py-3 space-y-1 flex-shrink-0">
+      <div className="border-t border-[#E7E5DF] dark:border-[rgba(255,255,255,0.07)] px-2 py-3 space-y-1 flex-shrink-0">
         {BOTTOM_NAV.map((item) => (
           <SidebarItem key={item.href} {...item} collapsed={!sidebarOpen} />
         ))}
@@ -141,7 +146,7 @@ export default function Sidebar() {
           onClick={handleLogout}
           aria-label="Sign out"
           className={cn(
-            'w-full text-xs font-medium py-2.5 px-3 rounded-[10px] text-[#EF4444] hover:text-red-300 hover:bg-red-500/10 flex items-center gap-3 transition-all',
+            'w-full text-xs font-medium py-2.5 px-3 rounded-[10px] text-[#EF4444] hover:text-red-600 dark:hover:text-red-300 hover:bg-rose-50 dark:hover:bg-red-500/10 flex items-center gap-3 transition-all',
             !sidebarOpen && 'justify-center px-2'
           )}
           title={!sidebarOpen ? 'Sign Out' : undefined}
@@ -154,10 +159,10 @@ export default function Sidebar() {
       {/* User Info */}
       {user && (
         <div className={cn(
-          'border-t border-[rgba(255,255,255,0.07)] px-3 py-3 flex items-center gap-3 flex-shrink-0 bg-[#0A0A0A]',
+          'border-t border-[#E7E5DF] dark:border-[rgba(255,255,255,0.07)] px-3 py-3 flex items-center gap-3 flex-shrink-0 bg-[#F4F3EE] dark:bg-[#0A0A0A]',
           !sidebarOpen && 'justify-center px-2'
         )}>
-          <div className="w-8 h-8 rounded-full bg-[#161616] border border-[rgba(212,175,55,0.35)] flex items-center justify-center flex-shrink-0 text-[#D4AF37] text-xs font-bold shadow-[0_0_8px_rgba(212,175,55,0.15)]">
+          <div className="w-8 h-8 rounded-full bg-white dark:bg-[#161616] border border-[#C6A15B]/40 dark:border-[rgba(212,175,55,0.35)] flex items-center justify-center flex-shrink-0 text-[#B8860B] dark:text-[#D4AF37] text-xs font-bold shadow-[0_0_8px_rgba(212,175,55,0.15)]">
             {user.name[0]?.toUpperCase()}
           </div>
           <AnimatePresence>
@@ -168,8 +173,8 @@ export default function Sidebar() {
                 exit={{ opacity: 0 }}
                 className="min-w-0"
               >
-                <p className="text-xs font-semibold text-[#F5F5F5] truncate">{user.name}</p>
-                <p className="text-[11px] text-[#6F6F6F] truncate">{user.email}</p>
+                <p className="text-xs font-semibold text-[#18181B] dark:text-[#F5F5F5] truncate">{user.name}</p>
+                <p className="text-[11px] text-[#71717A] dark:text-[#6F6F6F] truncate">{user.email}</p>
               </motion.div>
             )}
           </AnimatePresence>

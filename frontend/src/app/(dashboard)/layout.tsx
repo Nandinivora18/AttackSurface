@@ -21,7 +21,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#070707] flex items-center justify-center">
+      <div className="min-h-screen bg-cyber-bg flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#1A1A1A] to-[#0D0D0D] border border-[#5C4A20] flex items-center justify-center shadow-[0_0_20px_rgba(212,175,55,0.25)] animate-pulse">
             <Shield className="w-6 h-6 text-[#D4AF37]" />
@@ -40,7 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex min-h-screen bg-[#070707] text-[#F5F3ED]">
+    <div className="flex min-h-screen bg-cyber-bg text-cyber-primary transition-colors duration-200">
       <Sidebar />
       <motion.main
         animate={{ marginLeft: sidebarOpen ? 240 : 70 }}

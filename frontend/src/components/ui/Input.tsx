@@ -82,14 +82,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       ? 'border-red-500/60 focus:border-red-500/80 focus:shadow-[0_0_0_3px_rgba(239,68,68,0.15)]'
       : success
       ? 'border-green-500/50 focus:border-green-500/70 focus:shadow-[0_0_0_3px_rgba(34,197,94,0.15)]'
-      : 'border-[#2A2A2A] focus:border-[#D4AF37] focus:shadow-[0_0_0_3px_rgba(212,175,55,0.15)]';
+      : 'border-cyber-border focus:border-cyber-gold focus:shadow-[0_0_0_3px_rgba(184,134,11,0.15)]';
 
     return (
       <div className={cn('flex flex-col gap-1.5', wrapperClassName)}>
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs font-semibold uppercase tracking-wide text-[#A7A39A] select-none"
+            className="block text-xs font-semibold uppercase tracking-wide text-cyber-secondary select-none"
           >
             {label}
           </label>
@@ -99,7 +99,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {LeftIcon && (
             <LeftIcon
               className={cn(
-                'absolute top-1/2 -translate-y-1/2 flex-shrink-0 text-[#706C64] pointer-events-none',
+                'absolute top-1/2 -translate-y-1/2 flex-shrink-0 text-cyber-muted pointer-events-none',
                 iconLeftOffset[inputSize],
                 sizeIconSize[inputSize],
               )}
@@ -113,9 +113,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             disabled={disabled}
             className={cn(
               // Base
-              'w-full rounded-[10px] bg-[#0D0D0D] text-[#F5F3ED]',
+              'w-full rounded-[10px] bg-cyber-surface text-cyber-primary',
               'border transition-all duration-150 outline-none [font-variant-ligatures:none]',
-              'placeholder:text-[#706C64]',
+              'placeholder:text-cyber-muted',
               // Size
               sizeClasses[inputSize],
               LeftIcon && sizeIconLeft[inputSize],
@@ -146,13 +146,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         </div>
 
         {error && (
-          <p id={`${inputId}-error`} role="alert" className="text-xs text-red-400 flex items-center gap-1">
+          <p id={`${inputId}-error`} role="alert" className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1">
             {error}
           </p>
         )}
 
         {!error && hint && (
-          <p id={`${inputId}-hint`} className="text-[11px] text-[#706C64]">
+          <p id={`${inputId}-hint`} className="text-[11px] text-cyber-muted">
             {hint}
           </p>
         )}
