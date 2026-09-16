@@ -57,6 +57,11 @@ api.interceptors.response.use(
       }
     }
     let msg = error.response?.data?.detail;
+    if (Array.isArray(msg)) {
+      msg = msg.map((e: any) => e.msg || (typeof e === 'object' ? JSON.stringify(e) : String(e))).join('; ');
+    } else if (typeof msg === 'object' && msg !== null) {
+      msg = (msg as any).msg || (msg as any).message || JSON.stringify(msg);
+    }
     if (!msg && error.response?.data instanceof Blob) {
       try {
         const text = await error.response.data.text();

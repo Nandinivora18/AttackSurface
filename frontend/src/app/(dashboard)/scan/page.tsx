@@ -241,7 +241,16 @@ function ScanPageInner() {
     } catch (err: any) {
       setLoading(false);
       const detail = err.response?.data?.detail;
-      const msg = typeof detail === 'string' ? detail : 'Failed to start scan';
+      let msg = 'Failed to start scan';
+      if (typeof detail === 'string') {
+        msg = detail;
+      } else if (Array.isArray(detail)) {
+        msg = detail.map((e: any) => e.msg || String(e)).join('; ');
+      } else if (detail && typeof detail === 'object') {
+        msg = detail.msg || detail.message || JSON.stringify(detail);
+      } else if (err.message) {
+        msg = err.message;
+      }
       setErrorMessage(msg);
       toast.error(msg);
     }
