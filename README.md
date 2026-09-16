@@ -13,6 +13,8 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+**Team ID: TEAMID_28** &nbsp;|&nbsp; 📎 [View / Download Presentation (TEAMID_28.pdf)](TEAMID_28.pdf)
+
 </div>
 
 ---
@@ -357,7 +359,7 @@ SentinelScan implements a hardened, defense-in-depth authentication architecture
 ```
 SentinelScan/
 ├── .github/
-│   ├── workflows/             # CI & security automation workflows
+│   ├── workflows/             # CI workflow directory (no pipelines configured yet)
 │   ├── ISSUE_TEMPLATE/        # Standardized issue templates
 │   └── pull_request_template.md
 │
@@ -396,6 +398,19 @@ SentinelScan/
 - [ ] Scheduled recurring scans & webhook alert notifications (v1.1)
 - [ ] Multi-tenant organizations & team role-based access control (v2.0)
 - [ ] Continuous passive DNS change & TLS certificate expiration monitors (v2.0)
+
+---
+
+## ⚠️ Responsible Use
+
+SentinelScan is designed exclusively for **authorized security assessment** of systems you own or have explicit written permission to test.
+
+- **Do not** scan targets without the explicit consent of the system owner.
+- **Do not** attempt to bypass the built-in SSRF protections or rate limits.
+- **Do not** use SentinelScan as a component in automated attack pipelines.
+- All scan activity is logged with authenticated user attribution.
+
+Unauthorized scanning may violate the Computer Fraud and Abuse Act (CFAA), the Computer Misuse Act (UK), or equivalent local legislation. The authors accept no liability for misuse. By using SentinelScan, you accept full responsibility for ensuring your scanning activities are lawful and authorized.
 
 ---
 
