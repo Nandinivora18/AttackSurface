@@ -46,14 +46,18 @@ SentinelScan solves this by providing a **controlled, non-destructive hybrid ass
 | 🔟 **OWASP Top 10 Matrix** | Implements dedicated assessment mechanisms for all 10 OWASP categories with an honest 5-state evaluation model. |
 | 📋 **Security Header Audits** | Validates HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, and Permissions-Policy. |
 | 🔒 **TLS/SSL Evaluation** | Inspects cipher suites, certificate validity, expiration dates, SANs, and protocol versions. |
-| 🌐 **DNS Hygiene Checks** | Audits SPF, DKIM, and DMARC email authentication and DNS hygiene records. |
+| 🌐 **DNS Hygiene Checks** | Audits SPF, DMARC, and MX records for email authentication and DNS hygiene. |
 | 💥 **NVD CVE Correlation** | Correlates discovered software versions with public CVE entries and CVSS scores. |
 | ⚡ **Live Progress Streaming** | Relays background worker execution status to the frontend via ticket-authenticated SSE. |
 | 🔑 **Secure Authentication** | Dual-token authentication with short-lived JWT access tokens and HttpOnly refresh cookies. |
-| 📊 **Security Scoring & Grading** | Computes normalized risk scores (0–100) and letter grades (A–F) based on finding severity. |
+| 📊 **Security Scoring & Grading** | Computes normalized risk scores (0–100) and letter grades (A+–F) based on finding severity. |
 | 📄 **Multi-Format Reporting** | Generates 16-section Executive/Technical PDF and JSON exports with sensitive data redaction. |
 | 📜 **Scan History** | Tracks prior scan execution records, statuses, and generated reports across targets. |
 | 🔧 **Remediation Guidance** | Context-rich code and configuration snippets (Nginx, Apache, Express) for applicable findings. |
+| 🎨 **Global Theme System** | Project-wide dark/light theme with dark mode as default and a persistent floating theme toggle. |
+| 🔔 **In-App Notifications** | Per-user notification center with unread badge, dropdown panel, mark-as-read, and 15-second auto-refresh. |
+| 👤 **User Management** | Profile management, scan history browser, findings viewer, and dedicated admin panel. |
+| 🔐 **Account Flows** | Email verification, forgot/reset password, and Google OAuth 2.0 Single Sign-On. |
 
 ---
 
@@ -160,7 +164,7 @@ SentinelScan includes **37 registered detectors** across core security and OWASP
 SentinelScan provides **server-side export deliverables** with automated sensitive data redaction:
 
 1. **Technical PDF Assessment**: Comprehensive 16-section technical audit including raw evidence strings, HTTP headers, TLS certificate details, full CVE descriptions, CVSS vectors, and CWE/OWASP Top 10:2025 remediation steps compiled via ReportLab 4.x.
-2. **Executive PDF Summary**: High-level risk posture designed for leadership, featuring the overall security grade (A–F), total score (0–100), severity distribution charts, and executive remediation priorities.
+2. **Executive PDF Summary**: High-level risk posture designed for leadership, featuring the overall security grade (A+–F), total score (0–100), severity distribution charts, and executive remediation priorities.
 3. **Structured JSON Export**: Machine-readable JSON data stream for direct SIEM ingestion and automated security pipelines.
 
 > **Sensitive Data Redaction**: All export formats automatically mask sensitive credentials, tokens, passwords, and authorization headers before rendering.
@@ -359,7 +363,7 @@ SentinelScan implements a hardened, defense-in-depth authentication architecture
 ```
 SentinelScan/
 ├── .github/
-│   ├── workflows/             # CI workflow directory (no pipelines configured yet)
+│   ├── workflows/             # GitHub Actions CI: backend tests, frontend build, security checks
 │   ├── ISSUE_TEMPLATE/        # Standardized issue templates
 │   └── pull_request_template.md
 │
@@ -367,6 +371,9 @@ SentinelScan/
 │   ├── app/
 │   │   ├── models/            # SQLAlchemy database entities (7 active models)
 │   │   ├── routers/           # FastAPI route controllers
+│   │   ├── schemas/           # Pydantic request/response schemas
+│   │   ├── services/          # Business logic and service layer
+│   │   ├── middleware/        # Request middleware
 │   │   ├── scanner/           # Modular security inspection detectors (37 detectors)
 │   │   ├── tasks/             # ARQ background task orchestrators
 │   │   └── utils/             # Security, SSRF (19 subnets), PDF, and SSE utilities
@@ -377,14 +384,17 @@ SentinelScan/
 ├── frontend/
 │   ├── src/
 │   │   ├── app/               # Next.js 14 App Router pages and layouts
-│   │   ├── components/        # UI components, score rings, and charts
-│   │   ├── hooks/             # React hooks (useAuth, useScan, useSSE)
-│   │   └── store/             # Global client state management
+│   │   ├── components/        # Reusable UI components, score rings, and charts
+│   │   ├── lib/               # Shared utilities and API client
+│   │   ├── store/             # Zustand global client state
+│   │   └── types/             # TypeScript type definitions
 │   ├── package.json
 │   └── tailwind.config.js
 │
-├── docker/                    # Docker Compose & container configurations
+├── docker/                    # Docker Compose configs (base, dev, and production)
 ├── docs/                      # Technical architecture, threat models, API specs
+├── CHANGELOG.md               # Version history and release notes
+├── CODE_OF_CONDUCT.md         # Community conduct guidelines
 ├── CONTRIBUTING.md            # Collaboration & PR workflow guidelines
 ├── SECURITY.md                # Vulnerability disclosure policy
 └── LICENSE                    # MIT License
@@ -403,14 +413,14 @@ SentinelScan/
 
 ## ⚠️ Responsible Use
 
-SentinelScan is designed exclusively for **authorized security assessment** of systems you own or have explicit written permission to test.
+SentinelScan is intended for **authorized security assessment**, educational use, research, and testing of systems you own or have explicit permission to assess.
 
-- **Do not** scan targets without the explicit consent of the system owner.
-- **Do not** attempt to bypass the built-in SSRF protections or rate limits.
-- **Do not** use SentinelScan as a component in automated attack pipelines.
-- All scan activity is logged with authenticated user attribution.
+- Do not scan or assess systems without authorization.
+- Do not attempt to bypass built-in security controls or rate limits.
+- Use the platform only within the scope of authorization granted by the system owner.
+- All scans are associated with the authenticated user's account and persisted in the database.
 
-Unauthorized scanning may violate the Computer Fraud and Abuse Act (CFAA), the Computer Misuse Act (UK), or equivalent local legislation. The authors accept no liability for misuse. By using SentinelScan, you accept full responsibility for ensuring your scanning activities are lawful and authorized.
+Users are responsible for ensuring that their use of SentinelScan complies with applicable laws, regulations, and organizational policies.
 
 ---
 
