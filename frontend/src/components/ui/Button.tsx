@@ -34,17 +34,17 @@ const variantClasses: Record<ButtonVariant, string> = {
   ].join(' '),
 
   ghost: [
-    'bg-transparent text-[#A7A39A] font-medium',
-    'border border-[#2A2A2A]',
-    'hover:text-[#F5F3ED] hover:border-[#5C4A20] hover:bg-[#D4AF37]/10',
-    'active:bg-[#D4AF37]/15',
+    'bg-transparent text-cyber-secondary font-medium',
+    'border border-cyber-border',
+    'hover:text-cyber-primary hover:border-cyber-gold/50 hover:bg-cyber-gold/10',
+    'active:bg-cyber-gold/15',
     'disabled:opacity-40 disabled:cursor-not-allowed',
   ].join(' '),
 
   danger: [
     'bg-transparent text-[#EF4444] font-semibold',
     'border border-red-500/30',
-    'hover:bg-red-500/10 hover:border-red-500/60 hover:text-red-300',
+    'hover:bg-red-500/10 hover:border-red-500/60 hover:text-red-400',
     'active:bg-red-500/15',
     'disabled:opacity-40 disabled:cursor-not-allowed',
   ].join(' '),
@@ -57,9 +57,9 @@ const variantClasses: Record<ButtonVariant, string> = {
   ].join(' '),
 
   outline: [
-    'bg-[#111111] text-[#A7A39A] font-medium',
-    'border border-[#2A2A2A]',
-    'hover:bg-[#161616] hover:text-[#F5F3ED] hover:border-[#5C4A20]',
+    'bg-cyber-surface text-cyber-secondary font-medium',
+    'border border-cyber-border',
+    'hover:bg-cyber-elevated hover:text-cyber-primary hover:border-cyber-gold/50',
     'disabled:opacity-40 disabled:cursor-not-allowed',
   ].join(' '),
 };

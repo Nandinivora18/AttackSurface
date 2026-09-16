@@ -255,10 +255,11 @@ graph TD
 | **Frontend UI** | React | 18.3.1 | Component rendering | Declarative component UI and lifecycle management | All UI components |
 | **Language (Web)** | TypeScript | 5.5.3 | Static typing | Compile-time safety and schema synchronization | `frontend/tsconfig.json` |
 | **Styling** | Tailwind CSS | 3.4.7 | CSS utility framework | Custom design system tokens and glassmorphism styling | `tailwind.config.js`, `globals.css` |
+| **Theming Engine** | next-themes | 0.3.0 | Global theme management | Class-based dark/light theme switching with localStorage persistence | `frontend/src/components/shared/ThemeProvider.tsx` |
 | **Motion** | Framer Motion | 11.3.19 | UI Micro-interactions | Progress bars, animated score gauges, page transitions | Dashboard, Report sub-views |
 | **Icons** | Lucide React | 0.414.0 | UI iconography | Security, network, and operational status icons | Throughout UI components |
 | **Client HTTP** | Axios | 1.7.3 | API Client | Centralized interceptors for JWT injection and 401 handling | `frontend/src/lib/api.ts` |
-| **State** | Zustand | 4.5.4 | Client global state | Light/Dark theme persistence and UI layout state | `frontend/src/store/index.ts` |
+| **State** | Zustand | 4.5.4 | Client global state | UI layout state and client preferences | `frontend/src/store/index.ts` |
 | **Backend API** | FastAPI | 0.115.0 | Async web framework | High throughput, native OpenAPI, Pydantic validation | `backend/app/main.py` |
 | **ASGI Server** | Uvicorn | 0.30.6 | ASGI web server | Asynchronous ASGI Python server | `uvicorn app.main:app` |
 | **Data Validation** | Pydantic | 2.x | Schema validation | Request/response DTOs and environment settings | `backend/app/schemas/` |
@@ -321,32 +322,51 @@ frontend/src/
 ├── components/
 │   ├── layout/                  # Navigation, Sidebar, and DashboardHeader
 │   ├── reports/                 # ReportSubNav, FindingCard, and Export actions
-│   ├── shared/                  # GlassCard, SeverityBadge, ScanTimeline, LoadingSkeleton
+│   ├── shared/                  # GlassCard, SeverityBadge, ScanTimeline, LoadingSkeleton, ThemeProvider, ThemeToggle
 │   └── ui/                      # Base Design System (Button, Input, Badge, PageHeader, etc.)
 ├── lib/
 │   ├── api.ts                   # Configured Axios instance with token interceptors
 │   └── utils.ts                 # Formatting, score colors, grades, and location resolvers
 ├── store/
-│   └── index.ts                 # Zustand store managing theme and layout states
+│   └── index.ts                 # Zustand store managing UI and layout states
 └── types/
     └── index.ts                 # Synchronized TypeScript data contracts
 ```
 
 ### Key Frontend Components
+- **`ThemeToggle.tsx`**: Accessible, keyboard-navigable top-left floating theme switcher (`fixed top-3.5 left-3.5 z-50`) toggling between Dark (Obsidian Black) and Light (Executive Alabaster & Warm Gold) modes with dynamic Sun/Moon iconography, smooth transitions, and ARIA labels.
+- **`ThemeProvider.tsx`**: Application-root theme provider wrapping `next-themes` with `attribute="class"`, `defaultTheme="dark"`, `enableSystem={false}`, and localStorage persistence.
 - **`DashboardHeader.tsx`**: Renders dynamic user initials, real-time unread notification counts, and dropdown navigation to settings, profile, and logout.
 - **`Sidebar.tsx`**: Primary left-hand navigation linking to Dashboard, New Scan, Scan History, Reports, Profile, Settings, and conditionally Admin.
 - **`ReportSubNav.tsx`**: In-page tab bar switching between Overview, Headers, SSL, DNS, and Technology sub-pages without reloading parent metadata.
 - **`ScanTimeline.tsx`**: Live visualization displaying the active scan stage, elapsed milliseconds, and animated progress percentages during an assessment.
-- **`SeverityBadge.tsx`**: Color-coded semantic indicator for Critical (Red), High (Orange), Medium (Yellow), Low (Green), and Info (Slate).
+- **`SeverityBadge.tsx`**: Color-coded semantic indicator for Critical (Red/Rose), High (Orange/Amber), Medium (Yellow), Low (Green/Emerald), and Info (Slate), adapted with high-contrast variants for both dark and light modes.
 
 ---
 
 # 6. UI / UX Design
 
-### Visual Design Language
-SentinelScan implements a **luxury dark-mode cybersecurity aesthetic** designed for clarity, readability, and visual hierarchy.
+### Dual-Theme Visual Design Language
+SentinelScan implements a unified **Dual-Theme Design System** maintaining the platform's luxury cybersecurity identity across both dark and light modes:
 
-- **Base Colors**: Deep charcoal and jet blacks (`#0B0B0B`, `#101010`, `#161616`) prevent eye fatigue and establish contrast.
+1. **Dark Theme (Default Experience)**:
+   - **Canvas Background**: Deep obsidian black (`#070707`) with subtle cyber grid overlay.
+   - **Surfaces & Panels**: Dark charcoal (`#111111`) and elevated panels (`#161616`).
+   - **Borders & Accents**: Subtle charcoal borders (`#2A2A2A`) with metallic gold accents (`#D4AF37`).
+   - **Typography**: High-contrast ivory text (`#F5F3ED`) with muted warm secondary text (`#A7A39A`).
+
+2. **Light Theme ("Executive Alabaster & Warm Gold")**:
+   - **Canvas Background**: Soft porcelain alabaster (`#F7F6F2`) with subtle warm grid overlay.
+   - **Surfaces & Panels**: Crisp pure white panels (`#FFFFFF`) and elevated panels (`#F4F3EE`).
+   - **Borders & Accents**: Warm stone borders (`#E7E5DF`) with bronze-gold accents (`#B8860B`, `#C6A15B`).
+   - **Typography**: Deep rich charcoal text (`#18181B`) with slate secondary text (`#71717A`).
+   - **Code Surfaces**: Light gray monospace background (`#F4F4F5`) with distinct border (`#E4E4E7`).
+
+### Global Theme Switcher
+- **Placement**: Fixed floating button in the top-left corner (`fixed top-3.5 left-3.5 z-50`).
+- **Iconography**: Renders a Sun icon in dark mode indicating "Switch to light mode", and a Moon icon in light mode indicating "Switch to dark mode".
+- **Zero Hydration Flicker**: Handled via `suppressHydrationWarning`, initial dark class default on `<html>`, and client-side mount guards.
+- **Persistence**: Persists across route navigation, page reloads, browser sessions, and authenticated states via `next-themes` and `localStorage`.
 - **Accents**: Subtle gold/champagne accents (`#D4AF37`, `#5C4A20`) denote brand identity, primary actions, and system stability.
 - **Borders & Glassmorphism**: Cards feature subtle alpha borders (`rgba(255, 255, 255, 0.08)`) and backdrop blur filters (`backdrop-blur-md`).
 
