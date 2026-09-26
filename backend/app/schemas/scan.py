@@ -4,6 +4,7 @@ from pydantic import BaseModel, field_validator
 from typing import Optional
 from urllib.parse import urlparse
 from app.models.scan import ScanStatus
+from app.utils.safe_http import port_policy_error
 
 
 class ScanCreate(BaseModel):
@@ -49,6 +50,16 @@ class ScanCreate(BaseModel):
 
         if not hostname or "." not in hostname:
             raise ValueError("Invalid URL: must have a valid domain with a TLD (e.g. example.com)")
+
+        # Port policy is enforced here — at request validation time, before the
+        # scan is persisted or enqueued — so denied ports never reach the worker.
+        try:
+            configured_port = parsed.port
+        except ValueError:
+            raise ValueError("Invalid URL: port out of range 0-65535.")
+        policy_msg = port_policy_error(parsed.scheme, configured_port)
+        if policy_msg:
+            raise ValueError(policy_msg)
 
         # Block internal/private addresses for security
         blocked = ["localhost", "127.", "192.168.", "10.", "172.16.", "0.0.0.0", "::1"]

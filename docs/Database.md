@@ -326,3 +326,22 @@ The application enforces this: at startup, `create_tables()` (which calls `Base.
 | `users` | `audit_logs` | SET NULL |
 | `scans` | `reports` | CASCADE |
 | `reports` | `findings` | CASCADE |
+
+---
+
+## Ephemeral and Non-Persisted State
+
+To preserve privacy, data minimization, and memory safety, several runtime capabilities operate strictly ephemerally without relational persistence:
+
+1. **AI Conversation History (`Ask Sentinel`):**
+   - User chat turns and assistant responses are **not stored** in PostgreSQL or Redis.
+   - Conversation history is managed client-side in the frontend Zustand store (`frontend/src/store/aiStore.ts`) and submitted ephemerally per request (up to 10 conversation turns).
+   - Only per-user sliding window rate limiting counters are held in Redis (`ai:rate:{user_id}`) with a 1-hour TTL.
+
+2. **Visual Context & Screenshots (`Circle to Sentinel`):**
+   - User-selected viewport captures (base64-encoded JPEG/PNG) and associated DOM text snippets are transmitted directly to `POST /api/ai/visual-chat`.
+   - **Zero Disk or Database Persistence**: Visual payloads are decoded and evaluated purely in RAM during model inference and discarded immediately. No image files or binary blobs are written to PostgreSQL, Redis, or local storage.
+
+3. **Passive Remediation Intelligence:**
+   - Detailed remediation guidance (`problem`, `impact`, `fix_steps`, `configuration_example`, and documentation references) is computed statically at detection time and persisted inside the `findings` table record.
+   - SentinelScan operates strictly as a passive security assessment engine — no remote SSH keys, deployment credentials, or automated server-modification states are maintained.

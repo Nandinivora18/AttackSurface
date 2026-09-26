@@ -14,8 +14,10 @@ version: "3.9"
 #       mkdir -p ../nginx/certs && openssl req -x509 -newkey rsa:4096 -days 365 \
 #         -nodes -keyout ../nginx/certs/privkey.pem -out ../nginx/certs/fullchain.pem \
 #         -subj "/CN=localhost"
-#   * Optional runtime settings (SMTP credentials, NVD_API_KEY, …) are read from
-#     ../backend/.env when present.
+#   * F7: this stack NEVER loads ../backend/.env (it holds development credentials).
+#     Production secrets (SECRET_KEY, SMTP, Google OAuth, AI keys, …) are supplied
+#     exclusively via the environment / docker/.env (interpolated below). Place
+#     them in docker/.env (gitignored) or export them in the deployment shell.
 # ─────────────────────────────────────────────────────────────────────────────
 
 services:
@@ -59,9 +61,6 @@ services:
       dockerfile: Dockerfile
     container_name: sentinelscan_backend
     restart: unless-stopped
-    env_file:
-      - path: ../backend/.env
-        required: false
     environment:
       DATABASE_URL: postgresql+asyncpg://sentinelscan:sentinelscan_pass@postgres:5432/sentinelscan
       SYNC_DATABASE_URL: postgresql://sentinelscan:sentinelscan_pass@postgres:5432/sentinelscan
@@ -71,6 +70,22 @@ services:
       REQUIRE_EMAIL_VERIFICATION: ${REQUIRE_EMAIL_VERIFICATION:-true}
       SECRET_KEY: '${SECRET_KEY:?SECRET_KEY is required for production. Generate one (min 32 chars) e.g. python -c "import secrets; print(secrets.token_urlsafe(48))" and export it or place it in docker/.env}'
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-noreply@sentinelscan.io}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-SentinelScan}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:8000/api/auth/google/callback}
+      NVD_API_KEY: ${NVD_API_KEY:-}
+      AI_PROVIDER: ${AI_PROVIDER:-gemini}
+      AI_GEMINI_API_KEY: ${AI_GEMINI_API_KEY:-}
+      AI_GEMINI_MODEL: ${AI_GEMINI_MODEL:-models/gemini-3.6-flash}
+      AI_OPENAI_API_KEY: ${AI_OPENAI_API_KEY:-}
+      AI_OPENAI_MODEL: ${AI_OPENAI_MODEL:-gpt-4o-mini}
+      AI_OPENAI_BASE_URL: ${AI_OPENAI_BASE_URL:-}
     ports:
       - "8000:8000"
     depends_on:
@@ -100,9 +115,6 @@ services:
       dockerfile: Dockerfile
     container_name: sentinelscan_worker
     restart: unless-stopped
-    env_file:
-      - path: ../backend/.env
-        required: false
     environment:
       DATABASE_URL: postgresql+asyncpg://sentinelscan:sentinelscan_pass@postgres:5432/sentinelscan
       SYNC_DATABASE_URL: postgresql://sentinelscan:sentinelscan_pass@postgres:5432/sentinelscan
@@ -111,34 +123,61 @@ services:
       DEBUG: "false"
       SECRET_KEY: '${SECRET_KEY:?SECRET_KEY is required for production. Generate one (min 32 chars) e.g. python -c "import secrets; print(secrets.token_urlsafe(48))" and export it or place it in docker/.env}'
       WORKER_CONCURRENCY: "5"
+      NVD_API_KEY: ${NVD_API_KEY:-}
+      AI_PROVIDER: ${AI_PROVIDER:-gemini}
+      AI_GEMINI_API_KEY: ${AI_GEMINI_API_KEY:-}
+      AI_GEMINI_MODEL: ${AI_GEMINI_MODEL:-models/gemini-3.6-flash}
+      AI_OPENAI_API_KEY: ${AI_OPENAI_API_KEY:-}
+      AI_OPENAI_MODEL: ${AI_OPENAI_MODEL:-gpt-4o-mini}
+      AI_OPENAI_BASE_URL: ${AI_OPENAI_BASE_URL:-}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      # Wait for migrations (backend runs `alembic upgrade head` first) so the
+      # worker's startup reconcile never hits a missing table.
+      backend:
+        condition: service_healthy
     volumes:
       - ../backend:/app
     # Worker runs independently from the API — restarts do not affect API
     command: python run_worker.py
+    # The backend image ships a HEALTHCHECK that probes GET /api/health, but the
+    # worker does NOT run uvicorn. Override so the worker is health-checked by its
+    # own process instead of a dead HTTP port.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,sys; (print('ok',flush=True),sys.exit(0)) if os.path.exists('/proc/1/cmdline') and b'run_worker.py' in open('/proc/1/cmdline','rb').read() else sys.exit(1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     # No port exposure — worker only communicates via Redis + DB
 
   frontend:
     build:
       context: ../frontend
       dockerfile: Dockerfile
+      args:
+        # NEXT_PUBLIC_* values are baked into the browser bundle AT BUILD TIME.
+        # They are passed as build args (never injected at runtime).
+        #   * Base stack = local demo, so defaults point at the exposed host ports
+        #     (frontend :3000 → API :8000 directly). The nginx entrypoint is also
+        #     part of this stack and proxies /api → backend same-origin, so for a
+        #     production-style single-origin demo set:
+        #       docker compose build --build-arg NEXT_PUBLIC_API_URL=$FRONTEND_URL ...
+        #   * docker-compose.prod.yml derives NEXT_PUBLIC_API_URL from FRONTEND_URL
+        #     (same-origin) unless overridden — that is the production wiring.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-SentinelScan}
     container_name: sentinelscan_frontend
     restart: unless-stopped
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
     ports:
       - "3000:3000"
     depends_on:
       backend:
         condition: service_healthy
-    volumes:
-      - ../frontend:/app
-      - /app/node_modules
-      - /app/.next
 
   nginx:
     image: nginx:alpine

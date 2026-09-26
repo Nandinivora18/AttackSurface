@@ -13,6 +13,7 @@ import ReportSubNav from '@/components/reports/ReportSubNav';
 import GlassCard from '@/components/shared/GlassCard';
 import SeverityBadge from '@/components/shared/SeverityBadge';
 import { ReportSkeleton } from '@/components/shared/LoadingSkeleton';
+import { useAIStore } from '@/store/aiStore';
 import api from '@/lib/api';
 import {
   Report, Finding, Severity, OWASPMapping, CategoryScore,
@@ -1139,8 +1140,27 @@ export default function ReportPage() {
           </div>
         </div>
 
-        {/* Export Report CTA */}
-        <div className="relative">
+        {/* Header Actions: Ask Sentinel + Export */}
+        <div className="flex items-center gap-2">
+          {/* Ask Sentinel — scan context */}
+          <button
+            id="ask-sentinel-report-btn"
+            aria-label="Ask Sentinel about this report"
+            onClick={() =>
+              (useAIStore.getState()).openAssistant({
+                scanId: report.scan?.id,
+                scanUrl: report.scan?.url,
+                contextType: 'scan',
+              })
+            }
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#D4AF37]/25 bg-[#D4AF37]/5 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/50 transition-all text-xs font-semibold"
+          >
+            <span className="text-sm leading-none">✦</span>
+            <span>Ask Sentinel</span>
+          </button>
+
+          {/* Export Report CTA */}
+          <div className="relative">
           <button
             onClick={() => setExportMenuOpen(!exportMenuOpen)}
             disabled={downloading}
@@ -1194,6 +1214,7 @@ export default function ReportPage() {
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
         </div>
       </div>
 

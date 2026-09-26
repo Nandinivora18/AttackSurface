@@ -52,8 +52,23 @@ services:
       - ENVIRONMENT=production
       - DEBUG=false
       - REQUIRE_EMAIL_VERIFICATION=${REQUIRE_EMAIL_VERIFICATION:-true}
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - FRONTEND_URL=${FRONTEND_URL:?FRONTEND_URL must be set for production (e.g. https://sentinelscan.io)}
       - NVD_API_KEY=${NVD_API_KEY:-}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-noreply@sentinelscan.io}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-SentinelScan}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI:-${FRONTEND_URL}/api/auth/google/callback}
+      - AI_PROVIDER=${AI_PROVIDER:-gemini}
+      - AI_GEMINI_API_KEY=${AI_GEMINI_API_KEY:-}
+      - AI_GEMINI_MODEL=${AI_GEMINI_MODEL:-models/gemini-3.6-flash}
+      - AI_OPENAI_API_KEY=${AI_OPENAI_API_KEY:-}
+      - AI_OPENAI_MODEL=${AI_OPENAI_MODEL:-gpt-4o-mini}
+      - AI_OPENAI_BASE_URL=${AI_OPENAI_BASE_URL:-}
     command: >
       sh -c "alembic upgrade head &&
              uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4"
@@ -86,12 +101,31 @@ services:
       - DEBUG=false
       - WORKER_CONCURRENCY=${WORKER_CONCURRENCY:-5}
       - NVD_API_KEY=${NVD_API_KEY:-}
+      - AI_PROVIDER=${AI_PROVIDER:-gemini}
+      - AI_GEMINI_API_KEY=${AI_GEMINI_API_KEY:-}
+      - AI_GEMINI_MODEL=${AI_GEMINI_MODEL:-models/gemini-3.6-flash}
+      - AI_OPENAI_API_KEY=${AI_OPENAI_API_KEY:-}
+      - AI_OPENAI_MODEL=${AI_OPENAI_MODEL:-gpt-4o-mini}
+      - AI_OPENAI_BASE_URL=${AI_OPENAI_BASE_URL:-}
     command: python run_worker.py
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      # Wait for migrations to finish (backend runs `alembic upgrade head` before
+      # uvicorn starts) — otherwise the worker's startup reconcile hits a missing table.
+      backend:
+        condition: service_healthy
+    # The backend image ships a HEALTHCHECK that probes GET /api/health on :8000,
+    # but the worker does NOT run uvicorn. Override it so the worker is actually
+    # health-checked against its own process instead of a dead HTTP port.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,sys; (print('ok',flush=True),sys.exit(0)) if os.path.exists('/proc/1/cmdline') and b'run_worker.py' in open('/proc/1/cmdline','rb').read() else sys.exit(1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
       - sentinel-network
     # To scale to multiple workers: docker compose up --scale worker=2
@@ -100,12 +134,23 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile
+      args:
+        # NEXT_PUBLIC_* are baked into the browser bundle at BUILD time — never
+        # injected at runtime. FRONTEND_URL is the single source for the public
+        # frontend origin; the API defaults to the same origin (nginx proxies /api → backend).
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-${FRONTEND_URL}}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-${FRONTEND_URL}}
+        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-SentinelScan}
     container_name: sentinelscan-frontend-prod
     restart: always
-    environment:
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://api.sentinelscan.io}
     networks:
       - sentinel-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   nginx:
     image: nginx:alpine

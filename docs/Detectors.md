@@ -1,22 +1,38 @@
 # Detector Reference
 
-Complete reference for every security detector implemented in SentinelScan v1.0.
+Complete technical reference for all **82 security detectors** registered in SentinelScan (`DETECTOR_REGISTRY`).
 
-Each entry documents: purpose, methodology, severity, confidence, evidence format, known false positives, known false negatives, and remediation guidance.
+The engine includes **37 core baseline & OWASP assessment detectors** and **45 external exposure detectors across 12 intelligence domains**.
+
+Each entry documents: purpose, methodology, severity, confidence, evidence format, known limitations, and remediation guidance.
 
 ---
 
 ## Table of Contents
 
-- [DNS Detectors](#dns-detectors)
-- [SSL/TLS Detectors](#ssltls-detectors)
-- [HTTP Header Detectors](#http-header-detectors)
-- [CORS Detector](#cors-detector)
-- [Cookie Security Detectors](#cookie-security-detectors)
-- [Technology Detectors](#technology-detectors)
-- [CVE Detectors](#cve-detectors)
-- [Content Exposure Detectors](#content-exposure-detectors)
-- [Email Security Detectors](#email-security-detectors)
+- [Core Security Detectors](#core-security-detectors)
+  - [DNS Detectors](#dns-detectors)
+  - [SSL/TLS Detectors](#ssltls-detectors)
+  - [HTTP Header Detectors](#http-header-detectors)
+  - [CORS Detector](#cors-detector)
+  - [Cookie Security Detectors](#cookie-security-detectors)
+  - [Technology Detectors](#technology-detectors)
+  - [CVE Detectors](#cve-detectors)
+  - [Content Exposure Detectors](#content-exposure-detectors)
+  - [Email Security Detectors](#email-security-detectors)
+- [External Exposure Detectors (45 Detectors across 12 Domains)](#external-exposure-detectors)
+  - [Domain 1: Web Security Configuration](#domain-1-web-security-configuration)
+  - [Domain 2: Auth & Session Security](#domain-2-auth--session-security)
+  - [Domain 3: API Surface Exposure](#domain-3-api-surface-exposure)
+  - [Domain 4: JavaScript Secret Detection](#domain-4-javascript-secret-detection)
+  - [Domain 5: Source Map Exposure](#domain-5-source-map-exposure)
+  - [Domain 6: Sensitive Files & Standards](#domain-6-sensitive-files--standards)
+  - [Domain 7: Cloud Storage Exposure](#domain-7-cloud-storage-exposure)
+  - [Domain 8: DNS Intelligence](#domain-8-dns-intelligence)
+  - [Domain 9: TLS Deep Analysis](#domain-9-tls-deep-analysis)
+  - [Domain 10: Mixed Content Detection](#domain-10-mixed-content-detection)
+  - [Domain 11: Third-Party Scripts & SRI](#domain-11-third-party-scripts--sri)
+  - [Domain 12: Web Cache Exposure](#domain-12-web-cache-exposure)
 
 ---
 
@@ -661,3 +677,303 @@ Verified Git HEAD reference: ref: refs/heads/main
 ## Email Security Detectors
 
 See [DNS Detectors](#dns-detectors) — SPF and DMARC detectors are documented there as they operate through DNS resolution. (Note: DKIM selector lookup operates as an advisory probe and is not a registered detector ID in `DETECTOR_REGISTRY`).
+
+---
+
+# External Exposure Detectors
+
+SentinelScan's Stage 5e engine implements **45 dedicated external exposure detectors** across 12 intelligence domains, implemented in [`app/scanner/exposure_detector.py`](../backend/app/scanner/exposure_detector.py). All external requests utilize [`SafeFetchClient`](../backend/app/utils/safe_http.py) with SSRF validation, IP pinning, bounded timeouts, and strict content buffers.
+
+---
+
+## Domain 1: Web Security Configuration
+
+Inspects HTTP response headers and public management routes for configuration weaknesses, technology disclosures, and administrative interface exposure.
+
+### 1. `exposure.cors.misconfiguration`
+- **Category**: Web Security Configuration | **OWASP**: A04 | **CWE**: CWE-942
+- **Severity**: High (7.5) or Critical (9.1 with credentials) | **Confidence**: High
+- **Methodology**: Evaluates `Access-Control-Allow-Origin` (ACAO) and `Access-Control-Allow-Credentials` (ACAC). Differentiates wildcard origin (`*`) from origin reflection and combinations with credentials.
+- **Evidence**: `Access-Control-Allow-Origin: *` or `Access-Control-Allow-Origin: null | ACAC: true`
+- **Passive Boundary**: Evaluates static headers returned by server. Does not send arbitrary origin forgery payloads.
+
+### 2. `exposure.server.version_disclosure`
+- **Category**: Web Security Configuration | **OWASP**: A04 | **CWE**: CWE-200
+- **Severity**: Medium (5.3) | **Confidence**: High
+- **Methodology**: Regex matching against `Server` response header for versioned software tokens (Apache, nginx, IIS, etc.).
+- **Evidence**: `Server: Apache/2.4.51 (Unix)`
+
+### 3. `exposure.server.xpoweredby`
+- **Category**: Web Security Configuration | **OWASP**: A04 | **CWE**: CWE-200
+- **Severity**: Low (3.1) | **Confidence**: High
+- **Methodology**: Evaluates `X-Powered-By` headers disclosing backend runtime frameworks (PHP/8.1, Express, ASP.NET).
+- **Evidence**: `X-Powered-By: PHP/8.1.0`
+
+### 4. `exposure.debug.endpoint_exposed`
+- **Category**: Web Security Configuration | **OWASP**: A04 | **CWE**: CWE-489
+- **Severity**: High (7.5) / Medium (4.3 for health checks) | **Confidence**: High
+- **Methodology**: Probes known debug/management paths (`/debug`, `/actuator`, `/actuator/env`, `/metrics`, `/heapdump`). Filters legitimate benign health checks (`{"status":"up"}`).
+- **Evidence**: `HTTP 200 at /actuator/env — body: ...`
+
+---
+
+## Domain 2: Auth & Session Security
+
+Audits cookie security flags, cleartext credential submission, and insecure authentication schemes.
+
+### 5. `exposure.auth.session_cookie_flags`
+- **Category**: Auth and Session Security | **OWASP**: A07 | **CWE**: CWE-614 / CWE-1004
+- **Severity**: High (7.5) | **Confidence**: High
+- **Methodology**: Evaluates `Set-Cookie` directives on known session tokens (`sessionid`, `PHPSESSID`, `JSESSIONID`, `connect.sid`) for missing `HttpOnly`, `Secure`, or `SameSite` flags.
+- **Evidence**: `Set-Cookie: sessionid=...; Path=/; SameSite=Lax (missing HttpOnly, missing Secure)`
+
+### 6. `exposure.auth.plaintext_login`
+- **Category**: Auth and Session Security | **OWASP**: A02 | **CWE**: CWE-319
+- **Severity**: Critical (9.1) | **Confidence**: High
+- **Methodology**: Identifies password inputs (`<input type="password">`) served over unencrypted HTTP.
+- **Evidence**: `<input type="password"> found on HTTP page`
+
+### 7. `exposure.auth.basic_auth_exposed`
+- **Category**: Auth and Session Security | **OWASP**: A07 | **CWE**: CWE-522
+- **Severity**: Medium (5.3 over HTTPS) / High (7.5 over HTTP) | **Confidence**: High
+- **Methodology**: Detects `WWW-Authenticate: Basic` challenge headers on public endpoints.
+- **Evidence**: `WWW-Authenticate: Basic realm="Restricted Area"`
+
+---
+
+## Domain 3: API Surface Exposure
+
+Identifies publicly discoverable API specifications, interactive documentation, and GraphQL endpoints.
+
+### 8. `exposure.api.openapi_exposed`
+- **Category**: API Exposure | **OWASP**: A04 | **CWE**: CWE-200
+- **Severity**: Medium (5.3) | **Confidence**: High
+- **Methodology**: Probes for reachable OpenAPI specifications (`/openapi.json`, `/openapi.yaml`).
+- **Evidence**: `HTTP 200 at /openapi.json`
+
+### 9. `exposure.api.docs_exposed`
+- **Category**: API Exposure | **OWASP**: A04 | **CWE**: CWE-200
+- **Severity**: Medium (5.3) | **Confidence**: High
+- **Methodology**: Probes `/api-docs`, `/redoc`, `/api/swagger` returning interactive API documentation in production.
+- **Evidence**: `HTTP 200 at /api-docs`
+
+### 10. `exposure.api.graphql_exposed`
+- **Category**: API Exposure | **OWASP**: A04 | **CWE**: CWE-200
+- **Severity**: Medium (5.3) | **Confidence**: Medium
+- **Methodology**: Identifies reachable `/graphql`, `/graphiql`, `/playground` endpoints. Does not claim introspection without verification.
+- **Evidence**: `HTTP 200 at /graphql`
+
+### 11. `exposure.api.graphql_introspection`
+- **Category**: API Exposure | **OWASP**: A04 | **CWE**: CWE-200
+- **Severity**: High (7.5) | **Confidence**: High
+- **Methodology**: Probes GraphQL endpoints with a non-destructive introspection query (`{__schema{queryType{name}}}`). Emitted strictly when `__schema` is confirmed in response.
+- **Evidence**: `POST /graphql returned __schema`
+
+---
+
+## Domain 4: JavaScript Secret Detection
+
+Scans inline script blocks and same-origin external JavaScript files for hardcoded API keys, tokens, and private credentials.
+
+- **Size Controls**: HTML clamped to 1 MB; scripts clamped to 512 KB; maximum 10 same-origin scripts parsed.
+- **Secret Redaction**: Detected values are masked in evidence (`val[:4] + "****" + val[-4:]`). Raw secrets are never persisted or logged.
+
+| Detector ID | Secret Type | Severity | CVSS | Confidence | Pattern Focus |
+|---|---|:---:|:---:|:---:|---|
+| **12. `exposure.js.aws_key`** | AWS Access Key ID | Critical | 9.8 | High | `AKIA[0-9A-Z]{16}` |
+| **13. `exposure.js.aws_secret`** | AWS Secret Access Key | Critical | 9.8 | Medium | `aws_secret_access_key = '...'` |
+| **14. `exposure.js.google_api_key`** | Google Cloud / Maps API Key | High | 8.8 | High | `AIza[0-9A-Za-z\-_]{35}` |
+| **15. `exposure.js.github_token`** | GitHub Personal Access Token | Critical | 9.8 | High | `gh[pousr]_[A-Za-z0-9]{36,}` |
+| **16. `exposure.js.stripe_live_key`** | Stripe Live Secret Key | Critical | 9.8 | High | `sk_live_[A-Za-z0-9]{24,}` |
+| **17. `exposure.js.stripe_test_key`** | Stripe Test Key | Medium | 4.3 | High | `sk_test_[A-Za-z0-9]{24,}` |
+| **18. `exposure.js.slack_token`** | Slack API / Bot Token | High | 8.1 | High | `xox[baprs]-[0-9A-Za-z\-]{10,}` |
+| **19. `exposure.js.sendgrid_key`** | SendGrid API Key | High | 8.1 | High | `SG\.[A-Za-z0-9\-_]{22,}\.[A-Za-z0-9\-_]{43,}` |
+| **20. `exposure.js.jwt_secret`** | JWT HMAC Secret | High | 8.8 | Medium | `jwt_secret = '...'` |
+| **21. `exposure.js.generic_api_key`** | Generic High-Entropy API Key | Medium | 5.3 | Medium | `api_key = '...'` (filters test/dummy stubs) |
+| **22. `exposure.js.private_key`** | PEM Private Key Header | Critical | 9.8 | High | `-----BEGIN (RSA\|EC) PRIVATE KEY-----` |
+
+- **B-Grade Calibration Note**: Generic API keys and JWT secrets are calibrated to `confidence="medium"`. Passive scanning cannot verify whether keys are active without attempting unauthorized external API authentication.
+
+---
+
+## Domain 5: Source Map Exposure
+
+### 23. `exposure.sourcemap.exposed`
+- **Category**: Source Map Exposure | **OWASP**: A04 | **CWE**: CWE-540
+- **Severity**: Medium (5.3) | **Confidence**: High
+- **Methodology**: Extracts `sourceMappingURL` comments from JavaScript assets and probes reachable `.map` endpoints. Validates presence of the `"sources"` JSON array.
+- **Evidence**: `HTTP 200 at https://example.com/app.js.map with 'sources' key`
+
+---
+
+## Domain 6: Sensitive Files & Standards
+
+### 24. `exposure.files.robots_sensitive_paths`
+- **Category**: Sensitive File Exposure | **OWASP**: A04 | **CWE**: CWE-200
+- **Severity**: Low (3.1) | **Confidence**: High
+- **Methodology**: Parses `robots.txt` for `Disallow` directives revealing high-value targets (`/admin`, `/internal`, `/secret`, `/backup`, `/db`).
+- **Evidence**: `Sensitive Disallow entries: /admin, /api/internal, /backup`
+
+### 25. `exposure.files.security_txt_missing`
+- **Category**: Sensitive File Exposure | **OWASP**: A04 | **CWE**: RFC 9116
+- **Severity**: Info | **Confidence**: High
+- **Methodology**: Probes `/.well-known/security.txt`. Emitted when the standard security disclosure contact file is missing.
+- **Evidence**: `HTTP 404 for /.well-known/security.txt`
+
+---
+
+## Domain 7: Cloud Storage Exposure
+
+Audits client HTML and JavaScript code for references to public cloud storage containers (AWS S3, Google Cloud Storage, Azure Blob).
+
+### 26. `exposure.cloud.bucket_public`
+- **Category**: Cloud Storage Exposure | **OWASP**: A04 | **CWE**: CWE-200
+- **Severity**: Critical (9.1) | **Confidence**: High
+- **Methodology**: Probes referenced cloud bucket URLs. Emitted when response body contains public enumeration signatures (`<ListBucketResult`, `<EnumerationResults`).
+- **Evidence**: `HTTP 200 at https://my-bucket.s3.amazonaws.com with public listing response`
+
+### 27. `exposure.cloud.bucket_accessible`
+- **Category**: Cloud Storage Exposure | **OWASP**: A04 | **CWE**: CWE-200
+- **Severity**: Medium (5.3) | **Confidence**: Medium
+- **Methodology**: Probes referenced cloud bucket URLs. Emitted when the bucket returns HTTP 200 without full XML directory enumeration.
+- **Evidence**: `HTTP 200 at https://storage.googleapis.com/my-bucket`
+
+### 28. `exposure.cloud.bucket_reference`
+- **Category**: Cloud Storage Exposure | **OWASP**: A04 | **CWE**: CWE-200
+- **Severity**: Low (3.1) | **Confidence**: Medium
+- **Methodology**: Identifies cloud storage bucket URLs in page source that return non-200 status codes (e.g. 403 Forbidden). Network connection exceptions cleanly pass and never create spurious findings.
+- **Evidence**: `Bucket URL referenced in source: https://my-bucket.s3.amazonaws.com (HTTP 403)`
+
+---
+
+## Domain 8: DNS Intelligence
+
+Expands baseline DNS checks with deep policy hygiene and takeover risk analysis.
+
+### 29. `exposure.dns.spf_passall`
+- **Category**: DNS Intelligence | **OWASP**: A04 | **CWE**: CWE-345
+- **Severity**: High (7.5) | **Confidence**: High
+- **Methodology**: Emitted when SPF TXT records contain `+all` or `?all`, allowing any sender to forge mail. Collapsed with baseline `dns.spf.*` in deduplication.
+- **Evidence**: `SPF record contains permissive +all mechanism: v=spf1 include:_spf.example.com +all`
+
+### 30. `exposure.dns.spf_softfail`
+- **Category**: DNS Intelligence | **OWASP**: A04 | **CWE**: CWE-345
+- **Severity**: Medium (4.3) | **Confidence**: Medium
+- **Methodology**: Emitted when SPF uses `~all` without strong DMARC rejection, leaving spoofed emails delivered to spam folders instead of rejected.
+- **Evidence**: `SPF record uses ~all softfail mechanism`
+
+### 31. `exposure.dns.wildcard`
+- **Category**: DNS Intelligence | **OWASP**: A04 | **CWE**: CWE-345
+- **Severity**: Low (3.1) | **Confidence**: Medium
+- **Methodology**: Resolves random high-entropy test subdomains. Emitted when wildcard A records resolve.
+- **Evidence**: `Wildcard DNS resolution active: *.example.com -> 93.184.216.34`
+
+### 32. `exposure.dns.dmarc_missing`
+- **Category**: DNS Intelligence | **OWASP**: A04 | **CWE**: CWE-345
+- **Severity**: High (7.5) | **Confidence**: High
+- **Methodology**: Checks for absence of DMARC policy at `_dmarc.<domain>`. Canonicalized with `dns.dmarc.missing`.
+- **Evidence**: `No DMARC policy record found at _dmarc.example.com`
+
+### 33. `exposure.dns.dmarc_none_policy`
+- **Category**: DNS Intelligence | **OWASP**: A04 | **CWE**: CWE-345
+- **Severity**: Medium (5.3) | **Confidence**: High
+- **Methodology**: Detects `p=none` monitor-only policies that fail to instruct receiving mail servers to quarantine or reject spoofed mail.
+- **Evidence**: `v=DMARC1; p=none; rua=mailto:dmarc@example.com`
+
+---
+
+## Domain 9: TLS Deep Analysis
+
+Evaluates protocol deprecation, cipher suite strength, and public key deployment hygiene.
+
+### 34. `exposure.tls.weak_protocols`
+- **Category**: TLS Analysis | **OWASP**: A02 | **CWE**: CWE-326
+- **Severity**: High (7.5) | **Confidence**: High
+- **Methodology**: Detects server support for deprecated TLS 1.0, 1.1, SSLv2, or SSLv3 protocols during handshake negotiation.
+- **Evidence**: `Weak protocols: TLSv1.0, TLSv1.1`
+
+### 35. `exposure.tls.weak_ciphers`
+- **Category**: TLS Analysis | **OWASP**: A02 | **CWE**: CWE-327
+- **Severity**: High (7.5) | **Confidence**: High
+- **Methodology**: Identifies legacy non-AEAD cipher suites (RC4, 3DES, DES, EXPORT, NULL, MD5) accepted by the server.
+- **Evidence**: `Weak ciphers: TLS_RSA_WITH_3DES_EDE_CBC_SHA`
+
+### 36. `exposure.tls.hsts_not_preloaded`
+- **Category**: TLS Analysis | **OWASP**: A02 | **CWE**: CWE-319
+- **Severity**: Low (3.1) | **Confidence**: Medium
+- **Methodology**: Identifies valid HSTS deployments that omit the `preload` directive, leaving first-time visitors vulnerable to SSL stripping.
+- **Evidence**: `HSTS present but 'preload' directive absent`
+
+### 37. `exposure.tls.ct_not_logged`
+- **Category**: TLS Analysis | **OWASP**: A02 | **CWE**: CWE-295
+- **Severity**: Info | **Confidence**: Low
+- **Methodology**: Flagged when SCTs cannot be confirmed via passive handshake.
+- **Passive Limitation**: Formatted explicitly as a `NOT_VERIFIABLE` advisory. Passive scanners cannot independently verify Certificate Transparency compliance without live log monitoring.
+- **Evidence**: `Passive handshake cannot verify SCT presence (NOT_VERIFIABLE)`
+
+---
+
+## Domain 10: Mixed Content Detection
+
+Identifies unencrypted HTTP assets embedded within HTTPS target pages.
+
+### 38. `exposure.mixed_content.active`
+- **Category**: Mixed Content | **OWASP**: A02 | **CWE**: CWE-319
+- **Severity**: High (7.5) | **Confidence**: High
+- **Methodology**: Identifies unencrypted JavaScript sources (`<script src="http://...">`) and insecure form actions (`<form action="http://...">`) on HTTPS pages.
+- **Evidence**: `HTTP active resource URLs: http://cdn.example.com/lib.js`
+
+### 39. `exposure.mixed_content.passive`
+- **Category**: Mixed Content | **OWASP**: A02 | **CWE**: CWE-319
+- **Severity**: Medium (4.3) | **Confidence**: Medium
+- **Methodology**: Identifies unencrypted images, stylesheets, and audio/video resources loaded over plain HTTP on HTTPS pages.
+- **Evidence**: `HTTP resource URLs: http://images.example.com/logo.png`
+
+---
+
+## Domain 11: Third-Party Scripts & SRI
+
+Verifies that third-party scripts loaded from external CDNs implement cryptographic subresource integrity checks.
+
+### 40. `exposure.sri.cdn_missing`
+- **Category**: Third-Party and SRI | **OWASP**: A08 | **CWE**: CWE-353
+- **Severity**: Medium (5.3) | **Confidence**: High
+- **Methodology**: Identifies scripts loaded from known CDN domains (cdnjs, unpkg, jsdelivr, googleapis) lacking the `integrity` attribute.
+- **Evidence**: `CDN scripts without SRI: https://cdn.jsdelivr.net/npm/jquery.min.js`
+
+### 41. `exposure.sri.external_missing`
+- **Category**: Third-Party and SRI | **OWASP**: A08 | **CWE**: CWE-353
+- **Severity**: Low (3.1) | **Confidence**: Medium
+- **Methodology**: Identifies scripts hosted on external domains lacking `integrity` attributes.
+- **Evidence**: `External scripts without SRI: https://externalsite.com/widget.js`
+
+---
+
+## Domain 12: Web Cache Exposure
+
+Audits HTTP caching headers for potential credential and sensitive data exposure in shared intermediary proxies.
+
+### 42. `exposure.cache.authenticated_cacheable`
+- **Category**: Cache Exposure | **OWASP**: A02 | **CWE**: CWE-524
+- **Severity**: Medium (5.3) | **Confidence**: Medium
+- **Methodology**: Detects authenticated responses lacking `Cache-Control: no-store` or `private` directives.
+- **Evidence**: `Cache-Control: public, max-age=3600 | Auth header present`
+
+### 43. `exposure.cache.sensitive_api_cacheable`
+- **Category**: Cache Exposure | **OWASP**: A02 | **CWE**: CWE-524
+- **Severity**: High (7.5) | **Confidence**: Medium
+- **Methodology**: Probes sensitive user endpoints (`/api/user`, `/api/profile`, `/api/account`). Emitted when responses returning sensitive tokens, passwords, or PII omit `Cache-Control: no-store`.
+- **Evidence**: `HTTP 200 | Cache-Control: max-age=60 | API token in response`
+
+### 44. `exposure.cache.no_cache_control`
+- **Category**: Cache Exposure | **OWASP**: A04 | **CWE**: RFC 7234
+- **Severity**: Low (3.1) | **Confidence**: Medium
+- **Methodology**: Detects JSON API endpoints returning no `Cache-Control` header, allowing indefinite caching by intermediaries.
+- **Evidence**: `HTTP 200 | Cache-Control: absent`
+
+### 45. `exposure.api.rest_exposed`
+- **Category**: API Exposure | **OWASP**: A04 | **CWE**: CWE-200
+- **Severity**: Medium (5.3) | **Confidence**: Medium
+- **Methodology**: Detects public versioned REST API root endpoints (`/api/v1`, `/api/v2`, `/v1`) accessible without credentials.
+- **Evidence**: `HTTP 200 at /api/v1`
+

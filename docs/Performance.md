@@ -32,10 +32,18 @@ Typical scan durations against public internet targets:
 | Header Analysis | 0.5–3.0 seconds |
 | Technology Detection | 0.5–1.5 seconds |
 | CVE Lookup (per technology) | 1.0–3.0 seconds (NVD API) |
+| External Exposure Probes (Stage 5e) | 5.0–20.0 seconds (up to 120s timeout) |
 | Content Analysis | 3–15 seconds (probes up to 15 paths) |
 | Scoring + Persist | < 0.5 seconds |
 
-The **content analysis stage** is the most variable because it makes up to 15 sequential HTTP probes. Against rate-limiting servers, this can take significantly longer.
+### AI Inference Performance
+| Service | Latency (Typical) | Constraints |
+|---|---|---|
+| Sentinel Intelligence Chat (`/api/ai/chat`) | 1.5–3.0 seconds | Top-15 findings context cap, 1500 max output tokens |
+| Finding Explanation (`/api/ai/explain-finding`) | 1.0–2.5 seconds | Single finding + evidence context |
+| Circle to Sentinel Visual Chat (`/api/ai/visual-chat`) | 2.5–4.5 seconds | Viewport JPEG decode + multimodal Gemini 3.6 Flash |
+
+The **content analysis and external exposure stages** are the most variable because they issue multiple targeted HTTP probes. Against rate-limiting servers, this can take longer. SafeFetchClient enforces strict 10s timeouts per probe and a 120s stage cap.
 
 ---
 

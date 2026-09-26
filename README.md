@@ -54,10 +54,27 @@ SentinelScan solves this by providing a **controlled, non-destructive hybrid ass
 | 📄 **Multi-Format Reporting** | Generates 16-section Executive/Technical PDF and JSON exports with sensitive data redaction. |
 | 📜 **Scan History** | Tracks prior scan execution records, statuses, and generated reports across targets. |
 | 🔧 **Remediation Guidance** | Context-rich code and configuration snippets (Nginx, Apache, Express) for applicable findings. |
-| 🎨 **Global Theme System** | Project-wide dark/light theme with dark mode as default and a persistent floating theme toggle. |
+| 🤖 **Sentinel Intelligence (Ask Sentinel)** | Evidence-grounded AI security assistant powered by Google Gemini. Explains findings, evidence, severity, OWASP/CWE/CVE mappings, and remediation — grounded strictly in actual scan data. |
+| ⭕ **Circle to Sentinel** | Interactive visual security intelligence (`Ctrl+Shift+S` / `Cmd+Shift+S`). Select any on-screen UI element, chart, or finding to trigger automated visual interpretation via multimodal vision AI. |
+| 🎨 **Dark Theme Interface** | Permanent obsidian-black and metallic-gold dark theme. No light mode. |
 | 🔔 **In-App Notifications** | Per-user notification center with unread badge, dropdown panel, mark-as-read, and 15-second auto-refresh. |
 | 👤 **User Management** | Profile management, scan history browser, findings viewer, and dedicated admin panel. |
 | 🔐 **Account Flows** | Email verification, forgot/reset password, and Google OAuth 2.0 Single Sign-On. |
+
+---
+
+## 🎥 Demo
+
+### SentinelScan Full Assessment & Verification
+
+![SentinelScan Live Demo](docs/media/sentinelscan-demo.webp)
+
+> Direct media path: [docs/media/sentinelscan-demo.webp](docs/media/sentinelscan-demo.webp)
+
+### Circle to Sentinel (Visual AI Interaction)
+
+Interactive multimodal security investigation demo recording (`Ctrl+Shift+S` / `Cmd+Shift+S`):  
+> Video recording: [docs/media/CircleToSentinel.mp4](docs/media/CircleToSentinel.mp4)
 
 ---
 
@@ -144,8 +161,9 @@ For full threat analysis, see [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) and [
 
 ## 🎯 Detection Coverage
 
-SentinelScan includes **37 registered detectors** across core security and OWASP assessment categories:
+SentinelScan features **82 registered detectors** across core security baseline modules and 12 specialized external exposure domains:
 
+### Core Security & OWASP Modules (37 Baseline Detectors)
 | Category | Detectors | Primary Standards & References |
 |---|:---:|---|
 | **Security Headers** | 11 | RFC 6797 (HSTS), W3C CSP Level 3, RFC 7034 (XFO), OWASP ASVS 14.4, Server/Powered-By headers |
@@ -156,6 +174,23 @@ SentinelScan includes **37 registered detectors** across core security and OWASP
 | **CVE Correlation** | 1 | NIST NVD CVE database integration with CVSS scoring |
 | **Content Exposure** | 1 | Exposed `.env`, `.git/HEAD`, backup files, and soft-404 verification |
 | **OWASP Top 10 Assessment** | 11 | Dedicated assessment mechanisms covering OWASP Top 10:2025 categories (A01–A10) |
+
+### External Exposure Intelligence (45 Expanded Detectors across 12 Domains)
+| Domain | Detectors | Primary Focus & Verification Scope |
+|---|:---:|---|
+| **1. Web Security Configuration** | 4 | CORS wildcard/credentials analysis, Server header versioning, X-Powered-By, exposed debug/actuator endpoints |
+| **2. Auth & Session Security** | 3 | Session cookie flags (HttpOnly/Secure/SameSite), unencrypted HTTP login forms, exposed Basic Auth |
+| **3. API Surface Exposure** | 4 | OpenAPI 3 specs, Swagger/ReDoc docs, unauthenticated GraphQL roots, and confirmed schema introspection |
+| **4. JavaScript Secret Detection** | 11 | AWS key/secret, Google API keys, GitHub PATs, Stripe live/test, Slack, SendGrid, JWT secrets, generic API keys, private keys |
+| **5. Source Map Exposure** | 1 | Publicly reachable `.map` files enabling client-side source code and internal path reconstruction |
+| **6. Sensitive Files & Standards** | 2 | Internal path disclosure in `robots.txt` Disallow directives, missing RFC 9116 `security.txt` |
+| **7. Cloud Storage Exposure** | 3 | Publicly listable buckets, accessible cloud assets, and cloud bucket references (AWS S3, Google Cloud, Azure Blob) |
+| **8. DNS Intelligence** | 5 | Permissive SPF (`+all`, `~all`), wildcard DNS records, missing DMARC, and monitor-only `p=none` policies |
+| **9. TLS Deep Analysis** | 4 | Deprecated TLS 1.0/1.1 protocols, weak cipher suites, HSTS preload list submission, and CT status disclosure |
+| **10. Mixed Content Detection** | 2 | Active mixed content (HTTP scripts, form actions) and passive mixed content (images, stylesheets) on HTTPS |
+| **11. Third-Party & SRI** | 2 | CDN scripts and external JavaScript assets loaded without Subresource Integrity (`integrity`) hashes |
+| **12. Cache Exposure** | 3 | Authenticated responses lacking `no-store`/`private`, sensitive JSON API caching, and missing cache control |
+
 
 ---
 
@@ -321,6 +356,10 @@ docker compose -f docker/docker-compose.prod.yml up --build -d
 | `SMTP_PASSWORD` | SMTP password | No | — |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID | No | — |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | No | — |
+| `AI_PROVIDER` | AI provider (`gemini` or `openai`) | No | — |
+| `AI_GEMINI_API_KEY` | Google Gemini API key for Ask Sentinel | No | — |
+| `AI_GEMINI_MODEL` | Gemini model name | No | `gemini-3.6-flash` |
+| `AI_RATE_LIMIT_PER_HOUR` | Max AI requests per user per hour | No | `20` |
 
 > **NVD_API_KEY**: Optional but recommended. Without it, CVE lookups are rate-limited to 5 requests per 30 seconds (~33s for 5 technologies). With a free key from https://nvd.nist.gov/developers/request-an-api-key, the limit increases to 50 requests per 30 seconds (~3.5s). The key must never be committed to Git or baked into Docker images.
 
@@ -328,7 +367,7 @@ docker compose -f docker/docker-compose.prod.yml up --build -d
 
 ## 🧪 Testing & Validation
  
-SentinelScan maintains high test coverage across unit, security, false-positive regression, and integration suites (704 passing backend tests, 33 warnings).
+SentinelScan maintains high test coverage across unit, security, false-positive regression, external exposure, and integration suites (**907 passing backend tests**; 0 failures, 0 errors; 871 tests as documented prior milestone; all 36/36 dedicated external exposure tests passing).
  
 ```bash
 # Run the complete backend test suite (from backend/)
@@ -369,25 +408,27 @@ SentinelScan/
 │
 ├── backend/
 │   ├── app/
+│   │   ├── ai/                # Sentinel Intelligence: context, provider, sanitization, prompt injection rules
 │   │   ├── models/            # SQLAlchemy database entities (7 active models)
-│   │   ├── routers/           # FastAPI route controllers
+│   │   ├── routers/           # FastAPI route controllers (auth, scans, reports, ai, admin)
 │   │   ├── schemas/           # Pydantic request/response schemas
 │   │   ├── services/          # Business logic and service layer
 │   │   ├── middleware/        # Request middleware
-│   │   ├── scanner/           # Modular security inspection detectors (37 detectors)
-│   │   ├── tasks/             # ARQ background task orchestrators
-│   │   └── utils/             # Security, SSRF (19 subnets), PDF, and SSE utilities
-│   ├── tests/                 # Backend pytest suite (704 passing tests)
+│   │   ├── scanner/           # Modular security inspection detectors (82 detectors: 37 baseline + 45 exposure)
+│   │   ├── tasks/             # ARQ background task orchestrators (scan_task.py with Stage 5e exposure)
+│   │   └── utils/             # Security, SSRF (19 subnets), safe_http, PDF, and SSE utilities
+│   ├── tests/                 # Backend pytest suite (907 passing tests)
 │   ├── requirements.txt       # Runtime dependencies
 │   └── requirements-dev.txt   # Testing and development dependencies
 │
 ├── frontend/
 │   ├── src/
 │   │   ├── app/               # Next.js 14 App Router pages and layouts
-│   │   ├── components/        # Reusable UI components, score rings, and charts
-│   │   ├── lib/               # Shared utilities and API client
-│   │   ├── store/             # Zustand global client state
-│   │   └── types/             # TypeScript type definitions
+│   │   ├── components/        # Reusable UI components, score rings, charts, and AI assistant
+│   │   │   ├── ai/            # AskSentinelPanel, AskSentinelButton, CircleToSentinel visual overlay
+│   │   ├── lib/               # Shared utilities, API client, and aiApi
+│   │   ├── store/             # Zustand global client state (aiStore, authStore)
+│   │   └── types/             # TypeScript type definitions (ai.ts, scan.ts)
 │   ├── package.json
 │   └── tailwind.config.js
 │
@@ -408,6 +449,76 @@ SentinelScan/
 - [ ] Scheduled recurring scans & webhook alert notifications (v1.1)
 - [ ] Multi-tenant organizations & team role-based access control (v2.0)
 - [ ] Continuous passive DNS change & TLS certificate expiration monitors (v2.0)
+
+---
+
+## 🤖 Sentinel Intelligence & Circle to Sentinel
+
+SentinelScan embeds a context-aware AI security analyst layer — **Sentinel Intelligence** — and an interactive multimodal screen-region interpreter — **Circle to Sentinel**.
+
+### Purpose
+
+Security scanners produce complex technical findings that require expert interpretation. Sentinel Intelligence acts as an evidence-grounded security analyst that interprets scan findings, verifies evidence chains, explains severity ratings, maps OWASP/CWE/CVE vectors, and delivers contextual remediation — grounded strictly in actual scan data.
+
+**The Engineering Principle**:
+> *The Scanner detects. The Evidence proves. Sentinel Intelligence explains.*
+
+### Interactive User Experiences
+
+- **Global Assistant** — persistent Ask Sentinel panel available throughout the dashboard
+- **Finding-Level Interpretation** — dedicated one-click explanation button on each finding card
+- **Report-Level Context** — holistic scan assessment interpreting overall attack surface posture
+- **Circle to Sentinel (`Ctrl+Shift+S` / `Cmd+Shift+S`)** — drag-to-select any UI region, score card, or finding on the screen to trigger automated multimodal vision analysis without manual typing
+- **Conversational Follow-Up** — multi-turn conversation maintaining grounded context (up to 10 turns)
+
+### Architecture
+
+```
+Frontend (AskSentinelPanel / CircleToSentinel visual overlay)
+    ↓  POST /api/ai/chat | POST /api/ai/explain-finding | POST /api/ai/visual-chat
+FastAPI Router (app/routers/ai.py)
+    ↓  verified auth + Redis sliding-window rate limit (20/hr) + tenant authorization
+Context & Evidence Engine (app.ai.context)
+    ↓  user-ownership-verified scan/finding structured data + DOM text
+Secret Sanitizer (app.ai.sanitize)
+    ↓  redacted context dict (tokens, passwords, and sensitive keys masked)
+Prompt Boundary Engine (app.ai.system_prompt)
+    ↓  enforces Rule 1-14 trust boundaries (target data treated as DATA, not instructions)
+Provider Abstraction (app.ai.provider → GeminiProvider / OpenAIProvider)
+    ↓  structured multimodal messages with low temperature (0.2)
+Google Gemini API (models/gemini-3.6-flash)
+```
+
+### API Endpoints
+
+| Method | Path | Description | Security Controls |
+|--------|------|-------------|-------------------|
+| `GET` | `/api/ai/status` | Returns AI configuration status (no secrets exposed) | Verified Auth |
+| `POST` | `/api/ai/chat` | Conversational security analysis with scan/finding context | Auth, Rate-Limited (20/hr), Tenant Check |
+| `POST` | `/api/ai/explain-finding` | Structured 8-section technical finding explanation | Auth, Rate-Limited, IDOR Validation |
+| `POST` | `/api/ai/visual-chat` | Circle to Sentinel: visual crop + DOM text → vision AI | Auth, Rate-Limited, Base64 Validation |
+
+### Security & Trust Model
+
+- **Authentication Required**: All AI endpoints require an active, verified user session (`get_verified_user`).
+- **Strict Tenant Isolation**: Context queries enforce database-level `user_id` ownership; cross-tenant inquiries are rejected.
+- **Rule 14 Prompt Injection Defense**: Scan findings, HTTP response bodies, DOM text, and extracted JavaScript are encapsulated in explicit `OBSERVED_DATA` blocks. The system prompt strictly prohibits target content from acting as directives.
+- **Rule 13 Visual Data Boundary**: Circle to Sentinel screenshot pixels are treated as untrusted external observation data. Prompt override instructions rendered inside images are ignored.
+- **Secret Sanitization**: Context strings pass through `app.ai.sanitize` before reaching LLMs; passwords, session cookies, database URLs, and bearer tokens are masked with `[REDACTED]`.
+- **Grounded Evidence Mandate**: The model is forbidden from inventing findings, fabricating CVEs, or asserting external remediation. Conditions that cannot be observed passively are disclosed as `NOT_VERIFIABLE`.
+- **Redis Sliding-Window Rate Limiting**: Enforces a strict ceiling of 20 requests per hour per user with fail-closed security.
+- **Privacy & Transient Processing**: Circle to Sentinel visual captures are processed entirely in-memory and are never written to disk or persisted in database tables.
+
+### Configuration
+
+| Variable | Description |
+|----------|-------------|
+| `AI_PROVIDER` | `gemini` (current) or `openai` |
+| `AI_GEMINI_API_KEY` | Google Gemini API key (never commit to Git) |
+| `AI_GEMINI_MODEL` | Gemini model name (default: `gemini-3.6-flash`) |
+| `AI_RATE_LIMIT_PER_HOUR` | Max AI requests per user per hour (default: 20) |
+
+Ask Sentinel degrades gracefully: if the provider is not configured or returns an error, SentinelScan continues to function normally and returns a clean error message to the UI.
 
 ---
 

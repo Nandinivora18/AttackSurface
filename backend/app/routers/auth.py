@@ -19,7 +19,7 @@ from app.utils.security import (
     hash_password, verify_password, generate_token, hash_token,
     create_access_token, create_refresh_token, decode_token,
 )
-from app.utils.cache import blacklist_token, get_redis, is_token_blacklisted
+from app.utils.cache import blacklist_token, get_redis, is_token_blacklisted, RedisBlacklistError
 from app.services.email_service import send_verification_email, send_password_reset_email
 from app.config import settings
 from app.exceptions import SentinelException
@@ -266,11 +266,19 @@ async def refresh_token(
 
     # ── Blacklist check: reject if refresh token JTI has been revoked ────── #
     jti = token_payload.get("jti", "")
-    if jti and await is_token_blacklisted(jti):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Refresh token has been revoked",
-        )
+    if jti:
+        try:
+            revoked = await is_token_blacklisted(jti)
+        except RedisBlacklistError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication service temporarily unavailable",
+            )
+        if revoked:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token has been revoked",
+            )
 
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()

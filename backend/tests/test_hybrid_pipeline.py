@@ -116,6 +116,7 @@ async def test_passive_scan_pipeline_populates_report(mock_scan_passive):
          patch("app.scanner.tech_detector.detect_technologies", new=AsyncMock(return_value={"findings": [], "detected_technologies": {"Nginx": {"version": "1.24.0", "category": "Web Server"}}, "html_body": "<html></html>"})), \
          patch("app.scanner.content_analyzer.analyze_content", new=AsyncMock(return_value={"findings": []})), \
          patch("app.scanner.cve_checker.check_all_technologies", new=AsyncMock(return_value=[])), \
+         patch("app.scanner.exposure_detector.run_exposure_detection", new=AsyncMock(return_value=[])), \
          patch("app.scanner.scoring.calculate_score", return_value=mock_score), \
          patch("app.scanner.scoring.generate_executive_summary", return_value="Security posture is good."), \
          patch("app.scanner.scoring.generate_enriched_executive_summary", return_value={}):
@@ -186,6 +187,7 @@ async def test_safe_active_scan_pipeline_with_crawler(mock_scan_active):
          patch("app.scanner.tech_detector.detect_technologies", new=AsyncMock(return_value={"findings": [], "detected_technologies": {}, "html_body": "<html></html>"})), \
          patch("app.scanner.content_analyzer.analyze_content", new=AsyncMock(return_value={"findings": []})), \
          patch("app.scanner.cve_checker.check_all_technologies", new=AsyncMock(return_value=[])), \
+         patch("app.scanner.exposure_detector.run_exposure_detection", new=AsyncMock(return_value=[])), \
          patch("app.scanner.scoring.calculate_score", return_value=mock_score), \
          patch("app.scanner.scoring.generate_executive_summary", return_value="Summary"), \
          patch("app.scanner.scoring.generate_enriched_executive_summary", return_value={}), \

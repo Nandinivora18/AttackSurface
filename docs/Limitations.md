@@ -53,9 +53,9 @@ TLS analysis only connects on port 443. Non-standard HTTPS ports (e.g. 8443) are
 
 Certificate revocation status is not checked (no OCSP or CRL lookup).
 
-### No Certificate Transparency Monitoring
+### Certificate Transparency Verification Boundaries
 
-SentinelScan does not verify whether certificates are logged in Certificate Transparency logs.
+Certificate Transparency (CT) evaluation inspects the presence of Signed Certificate Timestamps (SCTs) within negotiated TLS handshake extensions or embedded X.509 certificate extensions (`exposure.tls.ct_not_logged`). However, SentinelScan does **not** make active outbound requests to public Certificate Transparency log servers (e.g., Google Argon, Cloudflare Nimbus) to verify inclusion proofs or audit log consistency, as third-party log enumeration exceeds passive target scanning boundaries.
 
 ### Python SSL Library
 
@@ -188,6 +188,28 @@ DNS analysis requires network access to authoritative nameservers. Firewalled en
 ### Scan Timeout
 
 Scans time out after 600 seconds (10 minutes). Unusually slow targets may not complete all stages before timeout.
+
+---
+
+## External Exposure Intelligence Boundaries
+
+The 45 External Exposure detectors adhere strictly to non-destructive, passive observation principles:
+
+### Static JavaScript Secret Detection
+- Evaluates client-delivered JavaScript files and HTML source for known credential signatures (AWS access keys, GitHub tokens, Slack webhooks, Stripe API keys, generic bearer tokens, private keys).
+- **Limitation:** SentinelScan does **not** attempt to authenticate or validate live access with discovered keys against third-party vendor APIs, as active credential verification would violate non-intrusive boundaries and risk triggering unauthorized access events. Confidence is calibrated honestly: deterministic format tokens (AWS, GitHub, Slack) receive High confidence, while generic authorization tokens receive Medium/Low confidence.
+
+### Cloud Storage Bucket Verification
+- Probes for publicly accessible cloud storage buckets (AWS S3, Google Cloud Storage, Azure Blob Storage) discovered through bucket naming references in target assets.
+- **Limitation:** Only safe HTTP `HEAD` or unauthenticated read requests are executed to confirm public directory listing or file readability. SentinelScan **never** attempts write, put, or delete operations against external cloud buckets.
+
+### Web Cache & Response Header Analysis
+- Evaluates public cache directives (`Cache-Control: public`, missing `no-store` on sensitive responses, unkeyed header reflections).
+- **Limitation:** SentinelScan analyzes headers as returned to the single scanning client. It cannot observe distributed intermediary CDN edge node caching behavior across disparate geographical POPs without distributed multi-probe testing.
+
+### Source Map Probing
+- Inspects `//# sourceMappingURL=` declarations and standard `.map` file paths to identify exposed production TypeScript/JavaScript source code.
+- **Limitation:** Validates public accessibility and JSON schema integrity; does not perform AST execution or full repository reverse-engineering.
 
 ---
 

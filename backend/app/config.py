@@ -91,6 +91,25 @@ class Settings(BaseSettings):
     # CVE / NVD Integration
     NVD_API_KEY: Optional[str] = None
 
+    # ── AI Assistant — Ask Sentinel ──────────────────────────────────────────
+    # Default provider is "gemini" (Google Gemini Free Tier).
+    # Supported providers: "gemini", "openai"
+    # Set AI_GEMINI_API_KEY to enable Gemini, or AI_PROVIDER=openai with AI_OPENAI_API_KEY.
+    # If no provider key is configured, Ask Sentinel returns a clean 503 and the rest
+    # of SentinelScan continues operating normally.
+    AI_PROVIDER: Optional[str] = "gemini"      # "gemini" (default) | "openai" | None
+    AI_GEMINI_API_KEY: Optional[str] = None    # Never exposed to frontend or logged
+    AI_GEMINI_MODEL: str = "models/gemini-3.6-flash"  # Fully-qualified model name required by google-genai SDK
+    AI_OPENAI_API_KEY: Optional[str] = None    # Never exposed to frontend or logged
+    AI_OPENAI_MODEL: str = "gpt-4o-mini"       # Fully config-driven; no hardcoded fallback in business logic
+    AI_OPENAI_BASE_URL: Optional[str] = None   # Override for Azure OpenAI or compatible endpoints
+    AI_TEMPERATURE: float = 0.2                # Low temperature = precise, grounded answers
+    AI_MAX_OUTPUT_TOKENS: int = 1500           # Per-response output token cap
+    AI_MAX_CONVERSATION_TURNS: int = 10        # History depth sent to LLM
+    AI_MAX_INPUT_MESSAGE_CHARS: int = 4000     # User message character cap
+    AI_RATE_LIMIT_PER_HOUR: int = 20           # Per-user AI requests per hour
+    AI_REQUEST_TIMEOUT_SECONDS: int = 30       # LLM call timeout
+
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
     @model_validator(mode="after")

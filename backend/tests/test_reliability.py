@@ -556,14 +556,24 @@ class TestReconciliation:
 # ─── Production Redis Auth Tests ──────────────────────────────────────────────
 
 class TestProductionRedisAuth:
-    """Production must fail-closed when Redis is unavailable for token blacklisting."""
+    """Production must fail-closed when Redis is unavailable for token blacklisting.
+
+    The security-critical dependency boundary is `get_redis()` (the shared async
+    Redis client). When it is unreachable, times out, or errors:
+      - `blacklist_token` raises RedisBlacklistError in production (revocation
+        cannot be confirmed → the caller refuses the operation).
+      - `is_token_blacklisted` raises RedisBlacklistError in production
+        (revocation cannot be verified → the request is rejected, a revoked
+        token is NEVER silently accepted).
+    Development keeps the in-memory fallback for convenience only.
+    """
 
     @pytest.mark.asyncio
     async def test_blacklist_token_raises_in_production_when_redis_down(self):
         """In production, blacklist_token must raise RedisBlacklistError when Redis down."""
         from app.utils.cache import blacklist_token, RedisBlacklistError
 
-        with patch("app.utils.cache._redis_available", AsyncMock(return_value=False)), \
+        with patch("app.utils.cache.get_redis", AsyncMock(side_effect=ConnectionError("down"))), \
              patch("app.utils.cache.settings") as mock_settings:
             mock_settings.ENVIRONMENT = "production"
 
@@ -575,7 +585,7 @@ class TestProductionRedisAuth:
         """In development, blacklist_token falls back to in-memory when Redis unavailable."""
         from app.utils.cache import blacklist_token, _local_blacklist
 
-        with patch("app.utils.cache._redis_available", AsyncMock(return_value=False)), \
+        with patch("app.utils.cache.get_redis", AsyncMock(side_effect=ConnectionError("down"))), \
              patch("app.utils.cache.settings") as mock_settings:
             mock_settings.ENVIRONMENT = "development"
 
@@ -587,41 +597,89 @@ class TestProductionRedisAuth:
     @pytest.mark.asyncio
     async def test_blacklist_token_succeeds_when_redis_available(self):
         """When Redis is available, token is blacklisted in Redis (both envs)."""
-        with patch("app.utils.cache._redis_available", AsyncMock(return_value=True)), \
-             patch("app.utils.cache.cache_set", AsyncMock()) as mock_set:
+        mock_redis = AsyncMock()
+        with patch("app.utils.cache.get_redis", AsyncMock(return_value=mock_redis)):
             from app.utils.cache import blacklist_token
             await blacklist_token("test-jti-redis", 1800)
-            mock_set.assert_called_once_with("blacklist:test-jti-redis", "1", expire=1800)
+            mock_redis.set.assert_awaited_once_with(
+                "blacklist:test-jti-redis", "1", ex=1800
+            )
 
     @pytest.mark.asyncio
-    async def test_is_token_blacklisted_logs_error_in_production_when_redis_down(self):
-        """In production, is_token_blacklisted logs security alert when Redis unavailable."""
-        from app.utils.cache import is_token_blacklisted
+    async def test_is_token_blacklisted_fails_closed_in_production_when_redis_down(self):
+        """In production, is_token_blacklisted RAISES (fail-closed) when Redis is down.
 
-        with patch("app.utils.cache._redis_available", AsyncMock(return_value=False)), \
+        A Redis outage must never be treated as "token definitely valid".
+        """
+        from app.utils.cache import is_token_blacklisted, RedisBlacklistError
+
+        with patch("app.utils.cache.get_redis", AsyncMock(side_effect=ConnectionError("down"))), \
              patch("app.utils.cache.settings") as mock_settings, \
              patch("app.utils.cache.logger") as mock_logger:
             mock_settings.ENVIRONMENT = "production"
 
-            result = await is_token_blacklisted("some-jti")
+            with pytest.raises(RedisBlacklistError):
+                await is_token_blacklisted("some-jti")
 
-        # Returns False (fail-open for availability — documented security trade-off)
-        assert result is False
         # Must log a SECURITY-level error
         mock_logger.error.assert_called()
         error_msg = mock_logger.error.call_args[0][0]
         assert "SECURITY" in error_msg or "unavailable" in error_msg.lower()
 
     @pytest.mark.asyncio
+    async def test_is_token_blacklisted_fails_closed_on_redis_timeout_in_production(self):
+        """A Redis TIMEOUT during lookup also fails closed in production."""
+        from app.utils.cache import is_token_blacklisted, RedisBlacklistError
+
+        mock_redis = AsyncMock()
+        mock_redis.exists.side_effect = TimeoutError("redis silent")
+        with patch("app.utils.cache.get_redis", AsyncMock(return_value=mock_redis)), \
+             patch("app.utils.cache.settings") as mock_settings, \
+             patch("app.utils.cache.logger") as mock_logger:
+            mock_settings.ENVIRONMENT = "production"
+
+            with pytest.raises(RedisBlacklistError):
+                await is_token_blacklisted("some-jti")
+
+        mock_logger.error.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_is_token_blacklisted_allows_non_revoked_token_when_redis_healthy(self):
+        """Healthy Redis + key absent → token is NOT revoked (normal path preserved)."""
+        from app.utils.cache import is_token_blacklisted
+
+        mock_redis = AsyncMock()
+        mock_redis.exists.return_value = 0
+        with patch("app.utils.cache.get_redis", AsyncMock(return_value=mock_redis)):
+            result = await is_token_blacklisted("fresh-jti")
+
+        assert result is False
+        mock_redis.exists.assert_awaited_once_with("blacklist:fresh-jti")
+
+    @pytest.mark.asyncio
+    async def test_is_token_blacklisted_detects_revoked_token_when_redis_healthy(self):
+        """Healthy Redis + key present → token IS revoked."""
+        from app.utils.cache import is_token_blacklisted
+
+        mock_redis = AsyncMock()
+        mock_redis.exists.return_value = 1
+        with patch("app.utils.cache.get_redis", AsyncMock(return_value=mock_redis)):
+            result = await is_token_blacklisted("revoked-jti")
+
+        assert result is True
+
+    @pytest.mark.asyncio
     async def test_logout_in_dev_with_redis_down_does_not_raise(self):
         """Development fallback: logout with Redis down does not raise."""
-        from app.utils.cache import blacklist_token
+        from app.utils.cache import blacklist_token, _local_blacklist
 
-        with patch("app.utils.cache._redis_available", AsyncMock(return_value=False)), \
+        jti = f"dev-jti-{uuid.uuid4()}"
+        with patch("app.utils.cache.get_redis", AsyncMock(side_effect=ConnectionError("down"))), \
              patch("app.utils.cache.settings") as mock_settings:
             mock_settings.ENVIRONMENT = "development"
             # Must not raise
-            await blacklist_token(f"dev-jti-{uuid.uuid4()}", 100)
+            await blacklist_token(jti, 100)
+            assert jti in _local_blacklist
 
 
 # ─── task_id Consistency Tests ────────────────────────────────────────────────

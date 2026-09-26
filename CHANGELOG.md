@@ -8,11 +8,27 @@ Format: `[Version] — Date — Category: Description`
 
 ## [Unreleased]
 
+### Ask Sentinel AI
+- **Ask Sentinel**: Added evidence-grounded AI security assistant powered by Google Gemini. Context-aware assistant that explains findings, evidence, severity, OWASP/CWE/CVE mappings, and remediation — grounded in actual scan data.
+- **Backend AI layer**: `app/ai/` module with `provider.py` (abstraction + GeminiProvider), `context.py` (ownership-checked context builder), `sanitize.py` (secret redaction before LLM), `system_prompt.py` (grounding rules), `knowledge.py` (platform knowledge base), `rate_limiter.py` (per-user Redis sliding window).
+- **AI API endpoints**: `GET /api/ai/status`, `POST /api/ai/chat`, `POST /api/ai/explain-finding` — all require authentication and are rate-limited.
+- **Frontend AI components**: `AskSentinelPanel` (slide-in panel with conversational history), `AskSentinelButton` (persistent floating trigger), `FindingAskButton` (finding-context entry), `QuickActions` (pre-built prompt shortcuts), `MessageBubble` (markdown message renderer).
+- **AI Store**: `src/store/aiStore.ts` — Zustand store for panel state, context, conversation history, and request lifecycle.
+- **Configuration**: `AI_PROVIDER`, `AI_GEMINI_API_KEY`, `AI_GEMINI_MODEL`, `AI_RATE_LIMIT_PER_HOUR`, `AI_MAX_CONVERSATION_TURNS`, `AI_MAX_OUTPUT_TOKENS`, `AI_TEMPERATURE`, `AI_REQUEST_TIMEOUT` settings in `app/config.py`.
+
+### UI — Dark-Only Theme
+- **Removed light theme**: Eliminated all light-mode CSS variables, `html:not(.dark)` override blocks, and the Ask Sentinel panel always-dark workaround from `globals.css`. Dark design tokens are now the single `:root` definition.
+- **Removed ThemeProvider and ThemeToggle**: Deleted `ThemeProvider.tsx` and `ThemeToggle.tsx`. Removed `next-themes` dependency from `package.json`.
+- **Permanent dark class**: `layout.tsx` now hardcodes `<html lang="en" className="dark">` — no runtime theme detection, no flash of unstyled content, no toggle.
+- **Simplified store**: Removed `ThemeMode` type and `setTheme` action from `useUIStore` in `store/index.ts`.
+- **Settings page**: Replaced Light/Dark/System theme picker with a dark-mode-only indicator.
+- **Navbar cleanup**: Removed `pl-11`/`pl-12` logo offset (was clearing the floating ThemeToggle) and collapsed all `dark:` Tailwind variants to direct values.
+
 ### Repository & Security Architecture
 - **Threat Model**: Added complete threat model and security controls architecture (`docs/THREAT_MODEL.md`) covering SSRF, IDOR, OAuth CSRF, session theft, and worker resilience.
 - **GitHub Actions CI/CD**: Added end-to-end multi-job workflow (`.github/workflows/ci.yml`) validating backend Pytest suites, frontend TypeScript/build checks, and repository secret hygiene.
 - **Community Templates**: Standardized Pull Request template (`.github/pull_request_template.md`) and Issue Templates (`bug_report.md`, `feature_request.md`, `security_issue.md`).
-- **Documentation Polish**: Synchronized all documentation (`docs/Testing.md`, `docs/API.md`, `docs/Frontend.md`, `docs/README.md`) to reflect the 367-test suite, 29 registered detectors, and ticket-authenticated SSE progress architecture.
+- **Documentation Sync**: Synchronized all documentation (`docs/ARCHITECTURE.md`, `docs/Frontend.md`, `docs/API.md`, `README.md`) to reflect the 37-detector registry, Ask Sentinel AI subsystem, dark-only UI, and ticket-authenticated SSE progress architecture.
 
 ---
 
@@ -38,7 +54,7 @@ Format: `[Version] — Date — Category: Description`
 ### Authentication
 
 - JWT dual-token scheme (30-minute access token + 7-day refresh token)
-- **bcrypt** password hashing via passlib
+- **bcrypt** password hashing (`bcrypt` package directly, 12-round default work factor)
 - **Email verification** flow with configurable bypass for development
 - **Google OAuth 2.0** social login
 - **Redis token blacklist** for immediate logout revocation
@@ -103,7 +119,7 @@ Seven-stage passive scanning pipeline:
 - `test_accuracy.py` — false-positive detection, soft-404, content validation
 - `test_auth_security.py` — JWT, token revocation, password hashing
 - `test_core.py` — full scan lifecycle, user registration
-- `test_delta.py` — scan comparison / delta
+- `test_delta.py` — scan comparison / delta *(retired in a later cleanup — the `delta_engine` scan-comparison service no longer exists)*
 - `test_idor.py` — IDOR protection
 - `test_pdf.py` — PDF generation
 - `test_reliability.py` — worker recovery, reconciliation, Redis auth failsafe
@@ -118,8 +134,8 @@ Seven-stage passive scanning pipeline:
 - Per-category score breakdown with color-coded visualization
 - Executive summary with business impact, strengths, weaknesses, quick wins
 - Scan timeline with per-stage duration
-- Public report sharing via signed tokens with expiry
-- Scan comparison (delta between two scans)
+- Public report sharing via signed tokens with expiry *(retired later — `share_links` table and the public `/api/reports/shared/{token}` endpoint were removed in migration `7340c9ab6be5`)*
+- Scan comparison (delta between two scans) *(retired later — no current scan-comparison feature)*
 
 ---
 

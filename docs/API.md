@@ -670,4 +670,175 @@ All error responses follow this schema:
 | `422` | Unprocessable Entity — Pydantic validation failed |
 | `429` | Too Many Requests — rate limit exceeded |
 | `500` | Internal Server Error — unexpected exception |
-| `503` | Service Unavailable — Redis or database down |
+| `503` | Service Unavailable — Redis, database, or AI provider unconfigured |
+
+---
+
+## AI Assistant (Ask Sentinel)
+
+Ask Sentinel provides grounded, context-aware passive security intelligence using **Google Gemini Free Tier** by default (with optional OpenAI compatibility).
+
+### Configuration (Google Gemini Free Tier)
+Obtain a free Gemini API key from [Google AI Studio](https://aistudio.google.com/).
+Add to `backend/.env`:
+```env
+AI_PROVIDER=gemini
+AI_GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+AI_GEMINI_MODEL=models/gemini-3.6-flash
+AI_TEMPERATURE=0.2
+AI_MAX_OUTPUT_TOKENS=1500
+AI_MAX_CONVERSATION_TURNS=10
+AI_RATE_LIMIT_PER_HOUR=20
+AI_REQUEST_TIMEOUT_SECONDS=30
+```
+
+---
+
+### GET /api/ai/status
+
+Inspect whether Ask Sentinel is configured and active. Does not make external LLM calls. Never exposes API keys, credentials, or secrets.
+
+**Auth:** Required (verified user)
+
+**Response `200` (Configured):**
+```json
+{
+  "configured": true,
+  "provider": "gemini",
+  "model": "models/gemini-3.6-flash"
+}
+```
+
+**Response `200` (Unconfigured):**
+```json
+{
+  "configured": false,
+  "provider": null,
+  "model": null
+}
+```
+
+---
+
+### POST /api/ai/chat
+
+Ask security questions with automatic scan-level or finding-level grounding.
+
+**Auth:** Required (verified user)
+
+**Rate Limit:** 20 requests per hour per user (Redis sliding-window)
+
+**Request Body:**
+```json
+{
+  "message": "Explain the severity and remediation for my scan findings.",
+  "scan_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "finding_id": null,
+  "conversation_id": "optional-session-id",
+  "conversation_history": [
+    {"role": "user", "content": "What does missing HSTS mean?"},
+    {"role": "assistant", "content": "HSTS ensures browsers only connect via HTTPS..."}
+  ]
+}
+```
+
+**Response `200`:**
+```json
+{
+  "answer": "Markdown-formatted explanation grounded in observed scan data...",
+  "sources": ["SentinelScan Scan Data", "OWASP Top 10:2025 A05"],
+  "context_type": "scan",
+  "finding_id": null,
+  "scan_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "model": "models/gemini-3.6-flash",
+  "provider": "gemini"
+}
+```
+
+---
+
+### POST /api/ai/explain-finding
+
+Generate a structured, section-by-section breakdown of an observed security finding.
+
+**Auth:** Required (verified user)
+
+**Rate Limit:** 20 requests per hour per user
+
+**Request Body:**
+```json
+{
+  "finding_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+}
+```
+
+**Response `200`:**
+```json
+{
+  "summary": "Plain-English summary of the finding.",
+  "why_it_matters": "Real-world risk and impact analysis.",
+  "evidence_explanation": "Explanation of observed headers/records.",
+  "technical_explanation": "Underlying mechanism and CWE reference.",
+  "severity_explanation": "Confidence and severity grounding.",
+  "owasp_context": "OWASP Top 10:2025 mapping.",
+  "remediation": "Step-by-step remediation guidance.",
+  "limitations": "What SentinelScan cannot verify passively.",
+  "sources": ["SentinelScan Scan Data"],
+  "model": "models/gemini-3.6-flash",
+  "provider": "gemini"
+}
+```
+
+---
+
+### POST /api/ai/visual-chat (Circle to Sentinel)
+
+Visual security intelligence endpoint. Accepts a cropped screen-region JPEG (base64) along with extracted DOM text and structured scan context to produce an evidence-grounded visual explanation.
+
+**Auth:** Required (verified user)
+
+**Rate Limit:** 20 requests per hour per user (shared Redis sliding-window quota)
+
+**Request Body:**
+```json
+{
+  "message": "What does this risk score card indicate?",
+  "image_data": "<base64_encoded_jpeg_string_without_prefix>",
+  "selected_text": "Security Dashboard ... Grade B ... 75 / 100",
+  "region": {
+    "x": 120.5,
+    "y": 240.0,
+    "width": 450.0,
+    "height": 300.0
+  },
+  "scan_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "finding_id": null,
+  "conversation_id": "optional-session-id",
+  "conversation_history": []
+}
+```
+
+- **Automatic Intent Note**: If `message` is empty or omitted, SentinelScan automatically generates a context-aware visual explanation of the selected area without requiring manual typing.
+- **Image Validation**: `image_data` must be valid base64 (max 2,000,000 chars ≈ ~1.5 MB base64 payload). Strips data URI prefixes automatically.
+- **Prompt Injection Defense**: Image bytes and DOM text are treated as untrusted `OBSERVED_DATA` (Rule 13/14). Directives embedded within screenshots are ignored.
+
+**Response `200`:**
+```json
+{
+  "answer": "The selected card displays the overall security posture score (75/100, Grade B)...",
+  "sources": ["SentinelScan Visual Context", "Scan Findings"],
+  "context_type": "visual",
+  "finding_id": null,
+  "scan_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "model": "models/gemini-3.6-flash",
+  "provider": "gemini"
+}
+```
+
+**Common Errors:**
+- `401 Unauthorized`: Missing or invalid bearer token.
+- `403 Forbidden`: Attempting to query scan/finding belonging to another user (IDOR prevention).
+- `422 Unprocessable Entity`: Invalid base64 image data or micro-selection.
+- `429 Too Many Requests`: Exceeded 20 AI requests/hour per user rate limit.
+- `503 Service Unavailable`: AI provider not configured or upstream API unreachable.
+- `504 Gateway Timeout`: Upstream LLM response exceeded 30s timeout.

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.user import UserResponse, UserUpdate, ChangePassword
 from app.services.auth_service import get_verified_user
 from app.utils.security import verify_password, hash_password
@@ -68,6 +68,11 @@ async def delete_account(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_verified_user),
 ):
+    if current_user.role == UserRole.admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Administrators cannot delete their own account — delegate admin responsibilities first",
+        )
     await db.delete(current_user)
     await db.commit()
     return {"message": "Account deleted successfully"}

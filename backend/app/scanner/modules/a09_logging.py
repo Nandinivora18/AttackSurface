@@ -14,7 +14,7 @@ import urllib.parse
 from typing import Any
 import httpx
 
-from app.utils.safe_http import async_resolve_and_pin
+from app.utils.safe_http import async_resolve_and_pin, BoundedAsyncClient
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +104,7 @@ async def assess_a09_logging(
         parsed = urllib.parse.urlparse(target_url)
         base_origin = f"{parsed.scheme}://{parsed.netloc}"
 
-        async with httpx.AsyncClient(timeout=4.0, follow_redirects=False) as client:
+        async with BoundedAsyncClient(timeout=4.0, follow_redirects=False) as client:
             for path in LOG_PATHS:
                 probe_url = urllib.parse.urljoin(base_origin, path)
                 is_safe, _, _, conn_url, host_header = await async_resolve_and_pin(probe_url)

@@ -737,11 +737,19 @@ async def stream_progress(
 
         # ── Blacklist check — reject revoked tokens (same semantics as REST API) #
         jti = payload.get("jti", "")
-        if jti and await is_token_blacklisted(jti):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has been revoked",
-            )
+        if jti:
+            try:
+                revoked = await is_token_blacklisted(jti)
+            except RedisBlacklistError:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Authentication service temporarily unavailable",
+                )
+            if revoked:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Token has been revoked",
+                )
 
     # Verify ownership
     result = await db.execute(

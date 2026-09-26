@@ -11,6 +11,13 @@ logger = logging.getLogger(__name__)
 
 _redis_client: Optional[aioredis.Redis] = None
 
+# Bounded socket timeouts for the shared Redis client so security-critical
+# operations (token revocation checks) fail closed promptly instead of hanging
+# on an unreachable or silent Redis. SSE pub/sub uses a short non-blocking poll
+# (app/utils/progress.py), so bounded socket reads do not break live streams.
+_REDIS_CONNECT_TIMEOUT_SECONDS = 2.0
+_REDIS_OPERATION_TIMEOUT_SECONDS = 5.0
+
 # In-memory fallback token blacklist for when Redis is unavailable.
 # WARNING: This is a DEVELOPMENT ONLY fallback.
 # Entries are lost on process restart — revoked tokens will be re-accepted.
@@ -35,6 +42,9 @@ async def get_redis() -> aioredis.Redis:
             settings.REDIS_URL,
             encoding="utf-8",
             decode_responses=True,
+            socket_connect_timeout=_REDIS_CONNECT_TIMEOUT_SECONDS,
+            socket_timeout=_REDIS_OPERATION_TIMEOUT_SECONDS,
+            socket_keepalive=True,
         )
     return _redis_client
 
@@ -85,25 +95,26 @@ async def blacklist_token(jti: str, expire_seconds: int) -> None:
     """
     Blacklist a JWT ID.
 
-    In production: requires Redis — raises RedisBlacklistError if unavailable.
+    In production: requires Redis — raises RedisBlacklistError if unavailable
+    or if the blacklist write cannot be confirmed.
     In development: falls back to in-memory store with a warning.
 
     The caller should handle the production failure case appropriately
     (return 503 rather than silently claiming successful revocation).
     """
     import time
-    redis_ok = await _redis_available()
-    if redis_ok:
-        await cache_set(f"blacklist:{jti}", "1", expire=expire_seconds)
+    key = f"blacklist:{jti}"
+    try:
+        r = await get_redis()
+        await r.set(key, "1", ex=expire_seconds)
         return
-
-    # Redis unavailable — production must fail, development can fall back
-    if settings.ENVIRONMENT == "production":
-        raise RedisBlacklistError(
-            "Token revocation failed: Redis is unavailable. "
-            "In production, Redis is required for persistent token blacklisting. "
-            "The logout operation cannot safely complete."
-        )
+    except Exception as exc:
+        if settings.ENVIRONMENT == "production":
+            raise RedisBlacklistError(
+                "Token revocation failed: Redis is unavailable. "
+                "In production, Redis is required for persistent token blacklisting. "
+                "The logout operation cannot safely complete."
+            ) from exc
 
     # Development fallback: in-memory blacklist
     _prune_local_blacklist()
@@ -120,27 +131,27 @@ async def is_token_blacklisted(jti: str) -> bool:
     """
     Check if a JWT ID has been blacklisted.
 
-    In production: checks Redis only — returns False (safe) if Redis is unavailable,
-    but this represents a security degradation that should be monitored.
-    In development: checks Redis first, then in-memory fallback.
+    In production: checks Redis — raises RedisBlacklistError (fail-closed) if
+    Redis is unavailable so a revocation cannot be verified. A revoked token is
+    never silently accepted during a Redis outage.
+    In development: checks Redis first, then the in-memory fallback.
     """
     import time
-    redis_ok = await _redis_available()
-
-    if redis_ok:
-        return await cache_exists(f"blacklist:{jti}")
-
-    if settings.ENVIRONMENT == "production":
-        # Redis is unavailable — we cannot verify blacklist.
-        # Log this as a security event. We choose to NOT block requests here
-        # (not revoke all tokens — that would break the service),
-        # but this MUST be monitored. The /api/readiness endpoint surfaces this.
-        logger.error(
-            "SECURITY: Redis unavailable — cannot verify token blacklist for JTI=%s. "
-            "Revoked tokens may be accepted. Restore Redis immediately.",
-            jti,
-        )
-        return False  # Allow the request (fail-open for availability, fail-closed would require Redis)
+    key = f"blacklist:{jti}"
+    try:
+        r = await get_redis()
+        return bool(await r.exists(key))
+    except Exception as exc:
+        if settings.ENVIRONMENT == "production":
+            logger.error(
+                "SECURITY: Redis unavailable — cannot verify token blacklist for JTI=%s. "
+                "Rejecting request (fail-closed).",
+                jti,
+            )
+            raise RedisBlacklistError(
+                "Token revocation check failed: Redis is unavailable. "
+                "Authentication cannot be safely verified."
+            ) from exc
 
     # Development: check in-memory fallback
     _prune_local_blacklist()

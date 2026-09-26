@@ -453,6 +453,347 @@ DETECTOR_REGISTRY: dict[str, dict[str, Any]] = {
         "min_confidence": 0.7,
         "content_types": None,
     },
+
+    # ── External Exposure Detection (12 Domains) ───────────────────────────
+
+    # Domain 1: Web Security Configuration
+    "exposure.cors.misconfiguration": {
+        "id": "exposure.cors.misconfiguration", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Web Security Configuration",
+        "description": "Detects dangerous CORS policy (wildcard ACAO, null-origin, or credentials+wildcard).",
+        "standards": ["OWASP Top 10 A04", "CWE-942"], "owasp_top10": "A04",
+        "min_confidence": 0.9, "content_types": None,
+    },
+    "exposure.server.version_disclosure": {
+        "id": "exposure.server.version_disclosure", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Web Security Configuration",
+        "description": "Detects software version strings in the Server HTTP response header.",
+        "standards": ["OWASP ASVS 14.3.3", "CWE-200", "RFC 7230 §7.1.4"], "owasp_top10": "A04",
+        "min_confidence": 0.9, "content_types": None,
+    },
+    "exposure.server.xpoweredby": {
+        "id": "exposure.server.xpoweredby", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Web Security Configuration",
+        "description": "Detects technology/version disclosure in the X-Powered-By header.",
+        "standards": ["OWASP Secure Headers Project", "CWE-200"], "owasp_top10": "A04",
+        "min_confidence": 0.9, "content_types": None,
+    },
+    "exposure.debug.endpoint_exposed": {
+        "id": "exposure.debug.endpoint_exposed", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Web Security Configuration",
+        "description": "Probes for publicly accessible debug, actuator, and management endpoints.",
+        "standards": ["OWASP Top 10 A04", "CWE-489"], "owasp_top10": "A04",
+        "min_confidence": 0.85, "content_types": None,
+    },
+
+    # Domain 2: Auth and Session Security
+    "exposure.auth.session_cookie_flags": {
+        "id": "exposure.auth.session_cookie_flags", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Auth and Session Security",
+        "description": "Checks session cookies for missing HttpOnly, Secure, and SameSite attributes.",
+        "standards": ["OWASP Top 10 A07", "CWE-614", "RFC 6265"], "owasp_top10": "A07",
+        "min_confidence": 0.9, "content_types": None,
+    },
+    "exposure.auth.plaintext_login": {
+        "id": "exposure.auth.plaintext_login", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Auth and Session Security",
+        "description": "Detects password input fields served over unencrypted HTTP.",
+        "standards": ["OWASP Top 10 A02", "CWE-319"], "owasp_top10": "A02",
+        "min_confidence": 0.95, "content_types": ["text/html"],
+    },
+    "exposure.auth.basic_auth_exposed": {
+        "id": "exposure.auth.basic_auth_exposed", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Auth and Session Security",
+        "description": "Detects HTTP Basic authentication challenges in WWW-Authenticate responses.",
+        "standards": ["OWASP Top 10 A07", "CWE-522", "RFC 7617"], "owasp_top10": "A07",
+        "min_confidence": 0.9, "content_types": None,
+    },
+
+    # Domain 3: API Exposure
+    "exposure.api.graphql_exposed": {
+        "id": "exposure.api.graphql_exposed", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "API Exposure",
+        "description": "Detects publicly accessible GraphQL endpoints, GraphiQL IDE, and Playground.",
+        "standards": ["OWASP API Security Top 10", "CWE-284"], "owasp_top10": "A01",
+        "min_confidence": 0.85, "content_types": None,
+    },
+    "exposure.api.graphql_introspection": {
+        "id": "exposure.api.graphql_introspection", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "API Exposure",
+        "description": "Confirms GraphQL introspection is enabled via a live __schema query.",
+        "standards": ["OWASP API Security Top 10 API7", "CWE-284"], "owasp_top10": "A01",
+        "min_confidence": 0.95, "content_types": None,
+    },
+    "exposure.api.openapi_exposed": {
+        "id": "exposure.api.openapi_exposed", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "API Exposure",
+        "description": "Detects publicly accessible OpenAPI/Swagger specification files.",
+        "standards": ["OWASP API Security Top 10 API9", "CWE-200"], "owasp_top10": "A04",
+        "min_confidence": 0.85, "content_types": None,
+    },
+    "exposure.api.docs_exposed": {
+        "id": "exposure.api.docs_exposed", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "API Exposure",
+        "description": "Detects publicly accessible API documentation endpoints (ReDoc, Swagger UI, api-docs).",
+        "standards": ["OWASP API Security Top 10 API9", "CWE-200"], "owasp_top10": "A04",
+        "min_confidence": 0.8, "content_types": None,
+    },
+    "exposure.api.rest_exposed": {
+        "id": "exposure.api.rest_exposed", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "API Exposure",
+        "description": "Detects publicly accessible versioned REST API roots without authentication.",
+        "standards": ["OWASP API Security Top 10 API1", "CWE-284"], "owasp_top10": "A01",
+        "min_confidence": 0.75, "content_types": None,
+    },
+
+    # Domain 4: JavaScript Secret Detection
+    "exposure.js.aws_key": {
+        "id": "exposure.js.aws_key", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "JavaScript Secret Detection",
+        "description": "Detects hardcoded AWS Access Key IDs (AKIA...) in inline or same-origin JavaScript.",
+        "standards": ["CWE-798", "OWASP Top 10 A02"], "owasp_top10": "A02",
+        "min_confidence": 0.95, "content_types": None,
+    },
+    "exposure.js.aws_secret": {
+        "id": "exposure.js.aws_secret", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "JavaScript Secret Detection",
+        "description": "Detects hardcoded AWS Secret Access Keys in JavaScript source.",
+        "standards": ["CWE-798", "OWASP Top 10 A02"], "owasp_top10": "A02",
+        "min_confidence": 0.9, "content_types": None,
+    },
+    "exposure.js.google_api_key": {
+        "id": "exposure.js.google_api_key", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "JavaScript Secret Detection",
+        "description": "Detects hardcoded Google API Keys (AIza...) in JavaScript source.",
+        "standards": ["CWE-798", "OWASP Top 10 A02"], "owasp_top10": "A02",
+        "min_confidence": 0.9, "content_types": None,
+    },
+    "exposure.js.github_token": {
+        "id": "exposure.js.github_token", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "JavaScript Secret Detection",
+        "description": "Detects hardcoded GitHub Personal Access Tokens in JavaScript.",
+        "standards": ["CWE-798", "OWASP Top 10 A02"], "owasp_top10": "A02",
+        "min_confidence": 0.95, "content_types": None,
+    },
+    "exposure.js.stripe_live_key": {
+        "id": "exposure.js.stripe_live_key", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "JavaScript Secret Detection",
+        "description": "Detects hardcoded Stripe live secret keys (sk_live_...) in JavaScript.",
+        "standards": ["CWE-798", "PCI DSS 6.5.3"], "owasp_top10": "A02",
+        "min_confidence": 0.95, "content_types": None,
+    },
+    "exposure.js.stripe_test_key": {
+        "id": "exposure.js.stripe_test_key", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "JavaScript Secret Detection",
+        "description": "Detects hardcoded Stripe test secret keys (sk_test_...) in JavaScript.",
+        "standards": ["CWE-798"], "owasp_top10": "A02",
+        "min_confidence": 0.85, "content_types": None,
+    },
+    "exposure.js.slack_token": {
+        "id": "exposure.js.slack_token", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "JavaScript Secret Detection",
+        "description": "Detects hardcoded Slack API/Bot tokens (xox...) in JavaScript.",
+        "standards": ["CWE-798", "OWASP Top 10 A02"], "owasp_top10": "A02",
+        "min_confidence": 0.9, "content_types": None,
+    },
+    "exposure.js.sendgrid_key": {
+        "id": "exposure.js.sendgrid_key", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "JavaScript Secret Detection",
+        "description": "Detects hardcoded SendGrid API keys in JavaScript.",
+        "standards": ["CWE-798", "OWASP Top 10 A02"], "owasp_top10": "A02",
+        "min_confidence": 0.9, "content_types": None,
+    },
+    "exposure.js.jwt_secret": {
+        "id": "exposure.js.jwt_secret", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "JavaScript Secret Detection",
+        "description": "Detects hardcoded JWT signing secrets in JavaScript source.",
+        "standards": ["CWE-798", "CWE-522", "OWASP Top 10 A02"], "owasp_top10": "A02",
+        "min_confidence": 0.85, "content_types": None,
+    },
+    "exposure.js.generic_api_key": {
+        "id": "exposure.js.generic_api_key", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "JavaScript Secret Detection",
+        "description": "Detects generic api_key/apikey/client_secret assignments in JavaScript source.",
+        "standards": ["CWE-798", "OWASP Top 10 A02"], "owasp_top10": "A02",
+        "min_confidence": 0.75, "content_types": None,
+    },
+    "exposure.js.private_key": {
+        "id": "exposure.js.private_key", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "JavaScript Secret Detection",
+        "description": "Detects PEM private key headers in JavaScript or HTML source.",
+        "standards": ["CWE-321", "CWE-798", "OWASP Top 10 A02"], "owasp_top10": "A02",
+        "min_confidence": 0.98, "content_types": None,
+    },
+
+    # Domain 5: Source Map Exposure
+    "exposure.sourcemap.exposed": {
+        "id": "exposure.sourcemap.exposed", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Source Map Exposure",
+        "description": "Confirms .map files are publicly accessible, enabling source code reconstruction.",
+        "standards": ["CWE-200", "OWASP WSTG-INFO-05"], "owasp_top10": "A04",
+        "min_confidence": 0.9, "content_types": None,
+    },
+
+    # Domain 6: Sensitive File Exposure
+    "exposure.files.robots_sensitive_paths": {
+        "id": "exposure.files.robots_sensitive_paths", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Sensitive File Exposure",
+        "description": "Detects sensitive internal path disclosure via robots.txt Disallow directives.",
+        "standards": ["OWASP WSTG-INFO-01", "CWE-200"], "owasp_top10": "A04",
+        "min_confidence": 0.85, "content_types": None,
+    },
+    "exposure.files.security_txt_missing": {
+        "id": "exposure.files.security_txt_missing", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Sensitive File Exposure",
+        "description": "Checks for the absence of a security.txt file per RFC 9116.",
+        "standards": ["RFC 9116", "securitytxt.org"], "owasp_top10": "A04",
+        "min_confidence": 0.9, "content_types": None,
+    },
+
+    # Domain 7: Cloud Storage Exposure
+    "exposure.cloud.bucket_public": {
+        "id": "exposure.cloud.bucket_public", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Cloud Storage Exposure",
+        "description": "Confirms cloud storage bucket (S3/GCS/Azure) is publicly listable.",
+        "standards": ["CWE-284", "OWASP Top 10 A01"], "owasp_top10": "A01",
+        "min_confidence": 0.95, "content_types": None,
+    },
+    "exposure.cloud.bucket_accessible": {
+        "id": "exposure.cloud.bucket_accessible", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Cloud Storage Exposure",
+        "description": "Detects cloud storage bucket referenced in source that returns HTTP 200 (public read).",
+        "standards": ["CWE-284", "OWASP Top 10 A01"], "owasp_top10": "A01",
+        "min_confidence": 0.8, "content_types": None,
+    },
+    "exposure.cloud.bucket_reference": {
+        "id": "exposure.cloud.bucket_reference", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Cloud Storage Exposure",
+        "description": "Detects cloud storage bucket URL references in client-facing HTML/JS source.",
+        "standards": ["CWE-200", "OWASP Top 10 A04"], "owasp_top10": "A04",
+        "min_confidence": 0.75, "content_types": None,
+    },
+
+    # Domain 8: DNS Intelligence
+    "exposure.dns.spf_passall": {
+        "id": "exposure.dns.spf_passall", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "DNS Intelligence",
+        "description": "Detects SPF records with +all or ?all allowing any sender to pass SPF.",
+        "standards": ["RFC 7208", "OWASP Email Security"], "owasp_top10": "A04",
+        "min_confidence": 0.95, "content_types": None,
+    },
+    "exposure.dns.spf_softfail": {
+        "id": "exposure.dns.spf_softfail", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "DNS Intelligence",
+        "description": "Detects SPF records using ~all softfail which does not reject unauthorized senders.",
+        "standards": ["RFC 7208"], "owasp_top10": "A04",
+        "min_confidence": 0.9, "content_types": None,
+    },
+    "exposure.dns.wildcard": {
+        "id": "exposure.dns.wildcard", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "DNS Intelligence",
+        "description": "Detects wildcard DNS records that may enable subdomain takeover attacks.",
+        "standards": ["CWE-350", "OWASP Top 10 A04"], "owasp_top10": "A04",
+        "min_confidence": 0.8, "content_types": None,
+    },
+    "exposure.dns.dmarc_missing": {
+        "id": "exposure.dns.dmarc_missing", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "DNS Intelligence",
+        "description": "Detects absence of DMARC policy record at _dmarc.hostname.",
+        "standards": ["RFC 7489", "DMARC.org"], "owasp_top10": "A04",
+        "min_confidence": 0.9, "content_types": None,
+    },
+    "exposure.dns.dmarc_none_policy": {
+        "id": "exposure.dns.dmarc_none_policy", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "DNS Intelligence",
+        "description": "Detects DMARC policy set to p=none (monitor only, does not block spoofed email).",
+        "standards": ["RFC 7489", "DMARC.org"], "owasp_top10": "A04",
+        "min_confidence": 0.9, "content_types": None,
+    },
+
+    # Domain 9: TLS Analysis
+    "exposure.tls.ct_not_logged": {
+        "id": "exposure.tls.ct_not_logged", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "TLS Analysis",
+        "description": "Checks whether the TLS certificate has been logged to Certificate Transparency.",
+        "standards": ["RFC 9162", "Chrome CT Policy"], "owasp_top10": "A02",
+        "min_confidence": 0.8, "content_types": None,
+    },
+    "exposure.tls.weak_protocols": {
+        "id": "exposure.tls.weak_protocols", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "TLS Analysis",
+        "description": "Detects support for deprecated TLS protocol versions (TLS 1.0, 1.1, SSLv3, SSLv2).",
+        "standards": ["RFC 8996", "NIST SP 800-52r2", "PCI DSS 6.5.4"], "owasp_top10": "A02",
+        "min_confidence": 0.95, "content_types": None,
+    },
+    "exposure.tls.weak_ciphers": {
+        "id": "exposure.tls.weak_ciphers", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "TLS Analysis",
+        "description": "Detects weak TLS cipher suites (RC4, 3DES, NULL, EXPORT, ANON).",
+        "standards": ["RFC 7465", "NIST SP 800-52r2", "PCI DSS 4.2.1"], "owasp_top10": "A02",
+        "min_confidence": 0.9, "content_types": None,
+    },
+    "exposure.tls.hsts_not_preloaded": {
+        "id": "exposure.tls.hsts_not_preloaded", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "TLS Analysis",
+        "description": "Checks if HSTS is configured but not submitted to the HSTS preload list.",
+        "standards": ["RFC 6797", "hstspreload.org"], "owasp_top10": "A02",
+        "min_confidence": 0.75, "content_types": None,
+    },
+
+    # Domain 10: Mixed Content
+    "exposure.mixed_content.active": {
+        "id": "exposure.mixed_content.active", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Mixed Content",
+        "description": "Detects active mixed content (HTTP scripts) on HTTPS pages.",
+        "standards": ["W3C Mixed Content Level 2", "CWE-319"], "owasp_top10": "A02",
+        "min_confidence": 0.9, "content_types": ["text/html"],
+    },
+    "exposure.mixed_content.passive": {
+        "id": "exposure.mixed_content.passive", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Mixed Content",
+        "description": "Detects passive mixed content (HTTP images/stylesheets) on HTTPS pages.",
+        "standards": ["W3C Mixed Content Level 2", "CWE-319"], "owasp_top10": "A02",
+        "min_confidence": 0.85, "content_types": ["text/html"],
+    },
+
+    # Domain 11: Third-Party and SRI
+    "exposure.sri.cdn_missing": {
+        "id": "exposure.sri.cdn_missing", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Third-Party and SRI",
+        "description": "Detects CDN-hosted scripts loaded without Subresource Integrity hashes.",
+        "standards": ["W3C SRI", "OWASP Top 10 A08", "CWE-353"], "owasp_top10": "A08",
+        "min_confidence": 0.9, "content_types": ["text/html"],
+    },
+    "exposure.sri.external_missing": {
+        "id": "exposure.sri.external_missing", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Third-Party and SRI",
+        "description": "Detects external scripts loaded without SRI integrity attributes.",
+        "standards": ["W3C SRI", "OWASP Top 10 A08", "CWE-353"], "owasp_top10": "A08",
+        "min_confidence": 0.8, "content_types": ["text/html"],
+    },
+
+    # Domain 12: Cache Exposure
+    "exposure.cache.authenticated_cacheable": {
+        "id": "exposure.cache.authenticated_cacheable", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Cache Exposure",
+        "description": "Detects authenticated responses lacking Cache-Control: no-store/private directives.",
+        "standards": ["OWASP WSTG-ATHN-06", "CWE-524", "RFC 7234"], "owasp_top10": "A02",
+        "min_confidence": 0.75, "content_types": None,
+    },
+    "exposure.cache.sensitive_api_cacheable": {
+        "id": "exposure.cache.sensitive_api_cacheable", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Cache Exposure",
+        "description": "Detects sensitive API responses (tokens, passwords, PII) without Cache-Control: no-store.",
+        "standards": ["OWASP WSTG-ATHN-06", "CWE-524", "PCI DSS 3.4"], "owasp_top10": "A02",
+        "min_confidence": 0.85, "content_types": None,
+    },
+    "exposure.cache.no_cache_control": {
+        "id": "exposure.cache.no_cache_control", "version": "1.0.0",
+        "author": "SentinelScan Core", "category": "Cache Exposure",
+        "description": "Detects JSON API endpoints returning no Cache-Control header at all.",
+        "standards": ["RFC 7234", "OWASP WSTG-ATHN-06"], "owasp_top10": "A04",
+        "min_confidence": 0.7, "content_types": None,
+    },
 }
 
 

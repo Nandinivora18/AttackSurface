@@ -21,7 +21,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Any, Set, List, Dict
 import httpx
 
-from app.utils.safe_http import async_resolve_and_pin
+from app.utils.safe_http import async_resolve_and_pin, BoundedAsyncClient
 
 logger = logging.getLogger(__name__)
 
@@ -315,7 +315,7 @@ class ControlledCrawler:
         self.visited_urls.add(self.base_url)
 
         limits = httpx.Limits(max_keepalive_connections=5, max_connections=10)
-        async with httpx.AsyncClient(timeout=self.timeout, limits=limits) as client:
+        async with BoundedAsyncClient(timeout=self.timeout, limits=limits) as client:
             # Step 1: Parse robots.txt and sitemap.xml for discovery context
             await self._parse_robots(client)
             await self._parse_sitemap(client)

@@ -6,6 +6,9 @@ import { Shield } from 'lucide-react';
 import Sidebar from '@/components/layout/Sidebar';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { useAuthStore, useUIStore } from '@/store';
+import AskSentinelPanel from '@/components/ai/AskSentinelPanel';
+import AskSentinelButton from '@/components/ai/AskSentinelButton';
+import CircleToSentinel from '@/components/ai/CircleToSentinel';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, fetchMe } = useAuthStore();
@@ -52,6 +55,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {children}
         </div>
       </motion.main>
+
+      {/* Ask Sentinel AI — globally available across all dashboard pages */}
+      <AskSentinelPanel />
+      <AskSentinelButton />
+      {/* Circle to Sentinel — screen-region selection overlay (Ctrl+Shift+S) */}
+      <CircleToSentinel />
     </div>
   );
 }

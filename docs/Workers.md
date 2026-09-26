@@ -101,6 +101,20 @@ Before executing, the task checks the scan's current status in the database:
 
 This prevents duplicate report creation if ARQ re-delivers a job.
 
+### Scan Pipeline Stages
+
+The orchestrator (`app/tasks/scan_task.py`) executes sequential scanning stages with cooperative cancellation checkpoints between stages:
+
+1. **Stage 1: DNS & Mail Security (0% → 15%)** — Resolves A, AAAA, MX, TXT, NS records, evaluating SPF policies and DMARC enforcement.
+2. **Stage 2: SSL/TLS Handshake & Cryptography (15% → 35%)** — Performs direct TLS socket handshakes to analyze certificate validity, cipher suites, protocol versions, and HSTS redirection.
+3. **Stage 3: HTTP Security Headers & Cookies (35% → 55%)** — Inspects baseline headers (`HSTS`, `CSP`, `XFO`, `XCTO`, `Referrer-Policy`, `Permissions-Policy`, `CORS`) and cookie flags (`Secure`, `HttpOnly`, `SameSite`).
+4. **Stage 4: Technology Fingerprinting (55% → 70%)** — Identifies web frameworks, CMS platforms, and server software via response signatures, DOM patterns, and headers.
+5. **Stage 4b: CVE & Lifecycle Correlation (70% → 85%)** — Cross-references extracted semver versions against live NIST NVD CVE records and vendor EOL databases (skipped if no versioned technologies are identified).
+6. **Stage 5: Sensitive Content Probing (85% → 91%)** — Performs controlled, non-destructive probes for exposed administrative files (`.env`, `.git/HEAD`, backups) with soft-404 token overlap baseline suppression.
+7. **Stage 5e: External Exposure Detection (91% → 92%)** — Executes 45 external exposure detectors across 12 intelligence domains (CORS, API endpoints, JS secrets, source maps, cloud buckets, extended DNS/TLS, mixed content, SRI, and cache headers) via `SafeFetchClient` with a strict **120.0s timeout**, non-blocking exception fallback, and pre-persistence canonical deduplication.
+8. **Stage 5b: Threat Intelligence Enrichment (92%)** — Correlates external exposure telemetry with known threat vectors and MITRE ATT&CK techniques.
+9. **Stage 6: Scoring, Remediation Assembly & Persistence (92% → 100%)** — Computes category deductions across the 100-point rubric, attaches finding-level remediation guidance, writes findings atomically to PostgreSQL, and emits the terminal completion SSE event.
+
 ---
 
 ## Retry Behaviour
@@ -194,6 +208,7 @@ On worker startup (`on_startup` hook), the worker logs all scans currently in `r
 | `scan:{id}:last_event` | Last progress JSON for reconnect | 1 hour |
 | `arq:health:sentinelscan-worker` | Worker heartbeat timestamp | 90 seconds |
 | `blacklist:{jti}` | Revoked JWT token | Token remaining lifetime |
+| `ai:rate:{user_id}` | Sentinel Intelligence sliding-window rate limit counter | 1 hour |
 
 ---
 

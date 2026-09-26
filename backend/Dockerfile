@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev \
     libcairo2-dev \
     libpango1.0-dev \
-    libgdk-pixbuf2.0-dev \
+    libgdk-pixbuf-2.0-dev \
     shared-mime-info \
     curl \
     && rm -rf /var/lib/apt/lists/*
@@ -27,13 +27,14 @@ WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PATH="/install/bin:$PATH"
+    PATH="/install/bin:$PATH" \
+    PYTHONPATH="/install/lib/python3.13/site-packages"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libcairo2 \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
-    libgdk-pixbuf2.0-0 \
+    libgdk-pixbuf-2.0-0 \
     shared-mime-info \
     curl \
     && rm -rf /var/lib/apt/lists/*

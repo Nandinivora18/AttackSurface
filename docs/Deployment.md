@@ -243,6 +243,10 @@ Complete reference for all environment variables:
 | `SMTP_FROM` | `noreply@sentinelscan.io` | — | Sender address |
 | `GOOGLE_CLIENT_ID` | `null` | — | Google OAuth client ID |
 | `GOOGLE_CLIENT_SECRET` | `null` | — | Google OAuth client secret |
+| `AI_PROVIDER` | `gemini` | — | AI engine (`gemini`) |
+| `AI_GEMINI_API_KEY` | `null` | — | Google Gemini API key for Sentinel Intelligence |
+| `AI_GEMINI_MODEL` | `models/gemini-3.6-flash` | — | Primary Gemini multimodal model |
+| `AI_RATE_LIMIT_PER_HOUR` | `20` | — | Max AI queries per user per hour (sliding-window) |
 | `NVD_API_KEY` | `null` | — | NVD API key for CVE lookups |
 | `MAX_SCAN_TIMEOUT` | `600` | — | Max scan job duration (seconds) |
 | `WORKER_CONCURRENCY` | `5` | — | Concurrent scan jobs per worker |
@@ -268,6 +272,7 @@ Before deploying to production, verify each item:
 - [ ] `ENVIRONMENT=production` and `DEBUG=false`
 - [ ] `REQUIRE_EMAIL_VERIFICATION=true`
 - [ ] `DEV_BYPASS_EMAIL_VERIFICATION=false` (or not set)
+- [ ] `AI_GEMINI_API_KEY` set securely in environment or secrets manager (if AI assistant enabled)
 - [ ] PostgreSQL password is strong and unique (not `sentinelscan_pass`)
 - [ ] Redis authentication enabled (`--requirepass`)
 - [ ] PostgreSQL port NOT exposed publicly (internal Docker network only)

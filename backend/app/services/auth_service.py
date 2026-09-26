@@ -6,7 +6,7 @@ from sqlalchemy import select
 from app.database import get_db
 from app.models.user import User, UserRole
 from app.utils.security import decode_token
-from app.utils.cache import is_token_blacklisted
+from app.utils.cache import is_token_blacklisted, RedisBlacklistError
 
 bearer_scheme = HTTPBearer(auto_error=False)
 bearer_scheme_optional = HTTPBearer(auto_error=False)
@@ -27,8 +27,16 @@ async def get_current_user(
     payload = decode_token(token, expected_type="access")
 
     jti = payload.get("jti", "")
-    if jti and await is_token_blacklisted(jti):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked")
+    if jti:
+        try:
+            revoked = await is_token_blacklisted(jti)
+        except RedisBlacklistError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication service temporarily unavailable",
+            )
+        if revoked:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked")
 
     try:
         user_id = uuid.UUID(payload["sub"])
@@ -64,8 +72,16 @@ async def get_current_user_or_token(
         raise exc
 
     jti = payload.get("jti", "")
-    if jti and await is_token_blacklisted(jti):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked")
+    if jti:
+        try:
+            revoked = await is_token_blacklisted(jti)
+        except RedisBlacklistError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication service temporarily unavailable",
+            )
+        if revoked:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked")
 
     try:
         user_id = uuid.UUID(payload["sub"])

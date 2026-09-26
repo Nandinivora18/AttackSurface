@@ -11,35 +11,55 @@ SentinelScan's test suite is designed around one principle: **tests must validat
 ```
 backend/tests/
 ├── test_accuracy.py              # Scanner accuracy, FP detection, soft-404 verification
+├── test_active_safety.py         # Passive-only boundary and non-intrusive safety checks
+├── test_admin_users.py           # Admin center permissions, telemetry, and management
+├── test_ai.py                    # Sentinel Intelligence grounding rules, sanitization, chat
 ├── test_arq_pool.py              # Shared ARQ Redis pool reuse and concurrency safety
-├── test_auth_regression.py       # Token blacklist TTL, logout revocation, slowapi rate limits
-├── test_auth_security.py         # Password hashing, email verification, startup secret validation
+├── test_auth_rate_limiting.py    # Slowapi rate limits on authentication endpoints
+├── test_auth_regression.py       # Token blacklist TTL, logout revocation, refresh logic
+├── test_auth_security.py         # Password hashing, email verification, secret validation
 ├── test_benchmark.py             # Server header version extraction benchmark regression
+├── test_component_engine.py      # Component fingerprinting and semver parser
 ├── test_confidence.py            # Finding confidence assignment and threshold logic
+├── test_controlled_evaluation.py # Controlled active probing safety constraints
 ├── test_core.py                  # Full scan lifecycle, user registration, auth flows
-├── test_delta.py                 # Scan comparison / Sentinel Delta detection
+├── test_crawler.py               # Single-page target parsing and link extract constraints
+├── test_email_service.py         # SMTP delivery, template rendering, and error handling
 ├── test_exporter.py              # CSV/HTML/JSON export generation and formula sanitization
-├── test_fp_regression.py         # Server header false-positive suppression regressions
+├── test_exposure_detector.py     # 45 External Exposure detectors across all 12 domains (36 tests)
+├── test_fp_regression.py         # False-positive suppression regressions
+├── test_hsts_deduplication.py    # Cross-detector HSTS deduplication and canonical keys
+├── test_hybrid_pipeline.py       # Hybrid scan execution and stage sequencing
 ├── test_idor.py                  # IDOR tenant isolation db boundary verification
+├── test_lifecycle.py             # Scan state machine, cooperative cancellation, idempotency
 ├── test_oauth.py                 # Google OAuth 2.0 flow, CSRF state lifecycle, account-linking
-├── test_pdf.py                   # Executive/Technical PDF generation, table formatting, redaction
+├── test_outbound_tls.py          # Strict outbound SNI and TLS certificate verification
+├── test_owasp_2025_regression.py # OWASP Top 10:2025 category mapping regressions
+├── test_owasp_modules.py         # Core OWASP passive inspection heuristics
+├── test_pdf.py                   # Executive/Technical PDF generation and redaction
+├── test_port_policy.py           # Port restrictions and non-standard port blocking
 ├── test_readiness.py             # DB, Redis, and Worker health check readiness probes
 ├── test_reliability.py           # Worker heartbeat recovery, orphan scan reconciliation
-├── test_remediation.py           # Remediation state machine, capability mapping, authorization
-├── test_remediation_verify.py    # Phase 2 live re-probe verification and audit logging
-├── test_reports_share_security.py# Share link authorization and password protection
+├── test_report_limits.py         # Report pagination, sizing, and finding clamping
+├── test_response_body_limits.py  # Response payload size clamping and streaming safety
 ├── test_sanitize.py              # Secret redaction, CSV sanitization, finding length clamping
 ├── test_scan_deletion.py         # Active scan protection and history deletion constraints
-├── test_scan_pipeline_e2e.py     # End-to-end worker queue, SSE, reconciliation, enqueue-safety tests
-├── test_scan_rate_limit.py       # Per-user concurrent active scan limits
+├── test_scan_pipeline_e2e.py     # End-to-end worker queue, SSE, reconciliation tests
+├── test_scan_rate_limit.py       # Max active scans per user & per-hour scan rate limits
 ├── test_server_dkim.py           # Server banner parsing and DKIM selector heuristics
 ├── test_sse_stream.py            # Redis pub/sub progress streaming and disconnect handling
 ├── test_sse_ticket.py            # Single-use ticket issuance, TTL expiry, stream auth
 ├── test_ssrf.py                  # IPv4, IPv6, loopback, link-local, cloud metadata SSRF validation
+├── test_visual_chat.py           # Circle to Sentinel visual region chat, DOM text, and safety
 └── test_worker.py                # ARQ job lifecycle, cancellation, idempotency
 ```
 
-**Latest verified test run: 588 tests passed, 0 failures in 53.03s**
+**Final Verified Test Baseline:**
+- **Full Backend Test Suite:** **907 tests passed, 0 failures, 0 errors** (38 downstream deprecation warnings from `python-jose` `datetime.utcnow()` and `reportlab` `ast.NameConstant`; zero project-level warnings)
+- **External Exposure Test Suite (`test_exposure_detector.py`):** **36/36 tests passed**
+- **Circle to Sentinel Visual Chat Suite (`test_visual_chat.py`):** **21 tests passed**
+- **Historical Milestones:** 871 tests (AI & hardening baseline) → 806 tests → 774 tests → 704 tests → 565 tests (early scanner prototype)
+- **Frontend Quality Assurance:** TypeScript type-check (`npm run type-check`) **PASS**; Next.js 14 production build (`npm run build`) **PASS** (20/20 routes prerendered cleanly)
 
 ---
 
@@ -112,7 +132,7 @@ Tests the security properties of the authentication system.
 
 ### `test_core.py` — Core Business Logic
 
-28 tests covering the entire user and scan lifecycle.
+29 tests covering the entire user and scan lifecycle.
 
 **Test classes:**
 - `TestSecurityUtils` — token creation, decoding, hashing
@@ -125,15 +145,9 @@ Tests the security properties of the authentication system.
 
 ---
 
-### `test_delta.py` — Scan Comparison & Sentinel Delta
+### Scan Lifecycle & Reconciliation Tests
 
-Tests the `delta_engine.py` service that computes Sentinel Delta intelligence (new, resolved, and unchanged findings and score shift between scans).
-
-**What's tested:**
-- New findings detected (present in current scan, absent in baseline)
-- Resolved findings (present in baseline, absent in current scan)
-- Unchanged findings (same title and category in both)
-- Score delta calculation
+`test_lifecycle.py` and `test_worker.py` cover the scan state machine (`pending → running → completed|failed|cancelled`), cooperative cancellation, idempotency, and the 5-minute `reconcile_orphan_scans` cron. The legacy `delta_engine.py` scan-comparison service and `test_delta.py` documented here previously do not exist in the current codebase (scan-comparison/delta intelligence was retired).
 
 ---
 
@@ -161,7 +175,7 @@ def test_user_cannot_access_other_user_report():
 
 ### `test_reliability.py` — Worker Reliability
 
-29 tests covering all failure scenarios in the worker system.
+35 tests covering all failure scenarios in the worker system.
 
 **Test classes:**
 
@@ -246,7 +260,7 @@ def test_ssrf_valid_public_urls():
 
 ### `test_worker.py` — ARQ Worker Logic
 
-23 tests across 7 test classes:
+29 tests across 7 test classes:
 
 **`TestScanStateMachine`** — status enum and transitions:
 - Terminal states are correct: `completed`, `failed`, `cancelled`

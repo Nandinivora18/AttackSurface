@@ -11,9 +11,9 @@ The SentinelScan frontend is a **Next.js 14 application** using the App Router, 
 ```
 frontend/src/
 ├── app/                          # Next.js App Router (24 pages)
-│   ├── layout.tsx                # Root HTML layout with dark theme & toaster
+│   ├── layout.tsx                # Root HTML layout with permanent dark theme & toaster
 │   ├── page.tsx                  # Landing page (marketing & live simulator)
-│   ├── globals.css               # Design tokens (Burgundy + Champagne) & Tailwind
+│   ├── globals.css               # Design tokens (Obsidian Black + Metallic Gold) & Tailwind
 │   │
 │   ├── (auth)/                   # Authentication route group
 │   │   ├── login/
@@ -44,19 +44,17 @@ frontend/src/
 │   │
 │   ├── auth/                     # OAuth callback handler
 │   │   └── callback/
-│   │
-│   └── share/                    # Public password-protected report share
-│       └── [token]/
 │
 ├── components/                   # Reusable React components
+│   ├── ai/                       # Ask Sentinel panel, button, message bubble, quick actions
 │   ├── dashboard/                # Dashboard widgets (SentinelDeltaWidget, RecentScans)
 │   ├── layout/                   # Sidebar, DashboardHeader, Navbar
-│   ├── reports/                  # Report sub-nav, share modal
+│   ├── reports/                  # Report sub-nav
 │   ├── shared/                   # SeverityBadge, GlassCard, CommandPalette
 │   └── ui/                       # Base design system (Button, Badge, Input, SectionCard)
 │
-├── lib/                          # API client (Axios), utilities, date formatting
-├── types/                        # TypeScript interfaces
+├── lib/                          # API client (Axios), utilities, aiApi, date formatting
+├── types/                        # TypeScript interfaces (including AI types)
 └── tailwind.config.js
 ```
 
@@ -109,12 +107,6 @@ Dedicated finding workspace with:
 - OWASP Top 10, CWE, and MITRE ATT&CK taxonomy tags
 - Workflow status updater (`open`, `in_progress`, `resolved`, `false_positive`)
 
-### Assets (`(dashboard)/assets/` & `[id]`)
-
-Continuous attack surface asset monitoring:
-- Asset domain inventory with current score, letter grade, and open finding count
-- Asset detail page with historical score delta events and component tracking
-
 ### History (`(dashboard)/history/`)
 
 Audit log of all past security assessments with search, date sorting, and status filtering.
@@ -130,7 +122,7 @@ User account management:
 ### Settings (`(dashboard)/settings/`)
 
 Application preferences:
-- Theme Mode selector (Dark, Light, System)
+- Dark-only theme indicator (no theme switching — SentinelScan uses permanent dark mode)
 - Email notification preferences (Scan completion emails, critical alerts)
 
 ### Admin Center (`(dashboard)/admin/` & `health/`)
@@ -139,15 +131,35 @@ Restricted to users with `admin` role:
 - User directory and role management
 - Real-time system health, database readiness, Redis cache status, and worker telemetry
 
-### Share Page (`app/share/[token]/`)
-
-Public report sharing page with optional password protection:
-- Executive summary, security grade, score ring, and finding list
-- Standalone view without sidebar or dashboard navigation
+> **Note:** The legacy public Share Page (`app/share/[token]/`) and Assets (`(dashboard)/assets/`) routes were removed alongside the retired `share_links` and `assets` database tables (migration `7340c9ab6be5`). Reports are private to their owner.
 
 ---
 
 ## Components
+
+### AI Components (`components/ai/`)
+
+**`AskSentinelPanel.tsx`**
+- Slide-in AI assistant panel, globally mounted in the dashboard layout
+- Displays conversation history with role-differentiated message bubbles
+- Supports scan context, finding context, and general (platform knowledge) mode
+- Quick actions toolbar with pre-built prompt shortcuts
+- Regenerate last response, clear conversation controls
+
+**`AskSentinelButton.tsx`**
+- Persistent floating trigger button for opening the Ask Sentinel panel
+- Always available from any dashboard page
+
+**`FindingAskButton.tsx`**
+- Context-specific Ask Sentinel entry point on finding detail pages
+- Pre-loads finding ID and title into the panel context
+
+**`QuickActions.tsx`**
+- Grid of pre-built prompt chips (summarize findings, explain severity, remediation plan, etc.)
+- Context-adaptive: different actions shown for scan vs. finding vs. general context
+
+**`MessageBubble.tsx`**
+- Renders individual AI messages with markdown, source citations, and error states
 
 ### Layout Components
 
@@ -240,19 +252,69 @@ Polls `/api/notifications` on a 30-second interval. Returns:
 
 ---
 
+## AI Assistant & Circle to Sentinel Components
+
+SentinelScan includes an integrated evidence-grounded AI intelligence suite in `src/components/ai/`:
+
+### `AskSentinelButton.tsx`
+- Floating and dashboard-embedded trigger for Sentinel Intelligence.
+- Displays active scan or finding context indicators and provides keyboard shortcut bindings (`Cmd+K` / `Ctrl+K`).
+- Triggers the slide-over AI assistant panel with current page context.
+
+### `AskSentinelPanel.tsx`
+- Persistent slide-over modal/drawer interface for interactive security conversations.
+- Features multi-turn conversational history (up to 10 turns), message streaming/loading state, rate limit remaining indicators, and direct links to finding records.
+- Provides double-submit protection, retry actions on error, and graceful timeout UX.
+- Renders answers via GitHub-flavored Markdown with syntax-highlighted code/config blocks.
+
+### `CircleToSentinel.tsx`
+- Interactive visual viewport selection overlay inspired by visual search, purpose-built for the SentinelScan security UI.
+- **Activation:** Triggered via global keyboard shortcut `Ctrl+Shift+S` (Windows/Linux) or `Cmd+Shift+S` (macOS), or via the visual inspect button.
+- **Pointer Events:** Universal support for mouse, touch, and stylus drag interactions.
+- **Selection Mechanics:** High-contrast marching-ants bounding box with corner grab handles, semi-transparent backdrop overlay, and live coordinate tracking.
+- **Safety & Filtering:** Rejects micro-selections (< 20px width/height) to prevent accidental clicks; supports `Escape` key cancellation.
+- **Context Extraction:** Automatically captures the bounding box coordinates, renders the visual region to a client-side canvas as a base64 JPEG (`image/jpeg` at 0.85 quality), extracts text from DOM nodes within the bounding box, and attaches existing scan/finding metadata.
+- **Automatic Explanation Flow:** Automatically opens the `AskSentinelPanel` and issues `POST /api/ai/visual-chat` with an internal explanation intent (`"Analyzing selected area..."`), rendering an evidence-grounded explanation without requiring manual user typing or inserting fake user messages.
+
+### `FindingAskButton.tsx`
+- Contextual action button rendered on finding cards and finding detail pages.
+- Instantly launches Ask Sentinel pre-grounded with the specific finding's evidence, OWASP/CWE category, CVSS score, and remediation steps.
+
+### `MessageBubble.tsx`
+- Markdown-enabled message component supporting formatted headings, lists, badges (`[CRITICAL]`, `[HIGH]`, `[MEDIUM]`, `[LOW]`, `[INFO]`), copy buttons, and source citation badges (`"Circle to Sentinel (Visual Context)"`, `"Live Scan Evidence"`).
+
+### `QuickActions.tsx`
+- Context-sensitive prompt chips (e.g., *"Explain this score"*, *"How do I fix the highest risk finding?"*, *"Summarize TLS posture"*) allowing instant one-click analysis.
+
+---
+
 ## State Management
 
-SentinelScan uses **React Context** (not Redux or Zustand) for global state:
+SentinelScan uses **Zustand** for global client state (not Redux). Store modules are in `src/store/`:
 
-**`AuthContext`** (`store/auth-context.tsx`)
-- Current user object
-- Access/refresh token storage
-- Auto-refresh when access token expires
-- Persists login state across page refreshes
+**`useAuthStore`** (`store/index.ts`)
+- Current user object and authentication status
+- login / logout / fetchMe / setUser actions
+- Persisted to localStorage (`sentinel-auth`)
 
-**`NotificationContext`** (`store/notification-context.tsx`)
-- Global toast queue
-- `showToast(message, type)` callable from anywhere
+**`useScanStore`** (`store/index.ts`)
+- Recent scans, current scan, current report
+- Scan progress (progress %, stage, message)
+
+**`useUIStore`** (`store/index.ts`)
+- Sidebar open/closed state
+- Persisted to localStorage (`sentinel-ui-storage`)
+
+**`useAIStore`** (`store/aiStore.ts`)
+- Ask Sentinel panel open/closed state
+- Current context (scan ID, finding ID, context type)
+- Conversation messages history
+- sendMessage, clearConversation, regenerateLastResponse actions
+- Duplicate-request guard (`_isSubmitting` flag)
+
+**`useNotificationStore`** (`store/index.ts`)
+- Notification list, unread count
+- fetchNotifications, markAsRead, markAllAsRead, deleteNotification
 
 **Local state** (via `useState` and `useReducer`) handles:
 - Form inputs
@@ -333,7 +395,7 @@ flowchart TD
 ## Key Design Decisions
 
 1. **App Router (not Pages Router)** — enables layout-level server components and eliminates wrapper boilerplate
-2. **No global state library** — React Context is sufficient for the auth/notification use cases; avoids dependency overhead
+2. **Zustand for client state** — lightweight, hook-based stores for auth, UI, scans, and AI assistant; avoids heavy Redux boilerplate
 3. **SSE over WebSockets** — simpler server-side implementation; uni-directional updates are sufficient for scan progress
 4. **Axios over fetch** — interceptors enable token refresh without per-call boilerplate
 5. **Tailwind CSS** — utility-first CSS enables rapid iteration without CSS file proliferation

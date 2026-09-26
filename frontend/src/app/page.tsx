@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   Shield, Zap, Globe, Lock, Eye, AlertTriangle,
   CheckCircle, ArrowRight, Star, ChevronDown, ChevronUp,
-  FileText, Cpu, Mail, Server, Code2, Activity,
+  FileText, Cpu, Mail, Server, Code2, Activity, Check,
 } from 'lucide-react';
 import LandingNavbar from '@/components/layout/Navbar';
 import SplashCursor from '@/components/shared/SplashCursor';
@@ -71,6 +71,112 @@ function CountUp({ target, suffix = '' }: { target: number; suffix?: string }) {
 
   return <div ref={ref}>{count.toLocaleString()}{suffix}</div>;
 }
+
+/* ────────── Security Layers (Four Deep Security Layers) ────────── */
+const SECURITY_LAYERS = [
+  {
+    title: 'Network & Transport',
+    badge: 'TLS & DNS',
+    icon: Lock,
+    desc: 'Deep inspection of cryptographic protocols, certificate chains, and DNS zone configurations.',
+    checks: [
+      'TLS 1.2 & 1.3 protocol validation',
+      'Certificate expiry & chain of trust',
+      'Forward secrecy cipher suite check',
+      'SPF, DMARC & MX routing records',
+    ],
+  },
+  {
+    title: 'HTTP & Browser Defense',
+    badge: 'Headers & Policies',
+    icon: Shield,
+    desc: 'Audit of defense-in-depth response headers shielding client sessions and mitigating attacks.',
+    checks: [
+      'Content-Security-Policy (CSP) parsing',
+      'Strict-Transport-Security (HSTS) enforcement',
+      'X-Frame-Options & Clickjacking defense',
+      'Permissions-Policy & Referrer-Policy',
+    ],
+  },
+  {
+    title: 'Stack & CVE Intelligence',
+    badge: 'Fingerprinting',
+    icon: Cpu,
+    desc: 'Non-invasive technology detection cross-referenced against authoritative vulnerability feeds.',
+    checks: [
+      'Signatures across 10 technology categories',
+      'Web server & framework identification',
+      'NIST NVD API v2 CVE correlation',
+      'Known EOL & patch status flags',
+    ],
+  },
+  {
+    title: 'Data & Surface Exposure',
+    badge: 'Privacy & Content',
+    icon: Eye,
+    desc: 'Detection of publicly accessible configuration files, debug endpoints, and session cookie flaws.',
+    checks: [
+      'Cookie flags: Secure, HttpOnly, SameSite',
+      'Sensitive file exposure (.git, .env, backups)',
+      'Administrative & debug portal detection',
+      'Plaintext email & credential exposure',
+    ],
+  },
+];
+
+/* ────────── Pipeline Steps (Execution Architecture) ────────── */
+const PIPELINE_STEPS = [
+  {
+    num: '01',
+    title: 'Target Validation',
+    sub: 'SSRF & Safety Guard',
+    desc: 'Safe URL normalization, private IP / loopback blocking, and DNS reachability verification.',
+  },
+  {
+    num: '02',
+    title: 'Passive Discovery',
+    sub: 'Network & Metadata',
+    desc: 'Asynchronous DNS lookups, TLS handshake analysis, and standard HTTP header collection.',
+  },
+  {
+    num: '03',
+    title: 'Security Analysis',
+    sub: '37 Detector Checks',
+    desc: 'Deterministic evaluation of transport ciphers, HTTP security headers, and cookie attributes.',
+  },
+  {
+    num: '04',
+    title: 'CVE Correlation',
+    sub: 'NIST NVD API v2',
+    desc: 'Signature matching against 23 tech profiles and query of known CVE records.',
+  },
+  {
+    num: '05',
+    title: 'OWASP & Scoring',
+    sub: 'A01–A10:2025 Taxonomies',
+    desc: 'Deductive score modeling (0–100) and mapping to 10 OWASP Top 10:2025 risk categories.',
+  },
+  {
+    num: '06',
+    title: 'Actionable Reporting',
+    sub: '4 Delivery Formats',
+    desc: 'Synthesis into interactive web dashboards, machine JSON, and downloadable Executive & Technical PDFs.',
+  },
+];
+
+/* ────────── OWASP Top 10:2025 Categories ────────── */
+const OWASP_CATEGORIES = [
+  { code: 'A01:2025', title: 'Broken Access Control', scope: 'Administrative interfaces, exposed directories & path traversal risks' },
+  { code: 'A02:2025', title: 'Security Misconfiguration', scope: 'Missing HTTP headers, default server banners & permissive CORS' },
+  { code: 'A03:2025', title: 'Software Supply Chain Failures', scope: 'Outdated web components, unvetted CDN scripts & legacy frameworks' },
+  { code: 'A04:2025', title: 'Cryptographic Failures', scope: 'Missing HSTS, deprecated TLS 1.0/1.1 protocols & weak ciphers' },
+  { code: 'A05:2025', title: 'Injection', scope: 'Component version matching to known remote injection CVEs' },
+  { code: 'A06:2025', title: 'Insecure Design', scope: 'Lack of defensive browser boundary headers like CSP & Permissions-Policy' },
+  { code: 'A07:2025', title: 'Authentication Failures', scope: 'Session cookies transmitted without Secure or HttpOnly flags' },
+  { code: 'A08:2025', title: 'Software & Data Integrity', scope: 'Unvalidated third-party scripts lacking integrity attributes' },
+  { code: 'A09:2025', title: 'Logging & Alerting Failures', scope: 'Missing CSP report-uri/report-to directive & security contact metadata' },
+  { code: 'A10:2025', title: 'Mishandling of Exceptional Conditions', scope: 'Verbose error messages, debug endpoints & stack trace disclosure' },
+];
 
 /* ────────── Features Data ────────── */
 const FEATURES = [
@@ -257,8 +363,121 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── SECURITY LAYERS SECTION ── */}
+      <section id="security" className="py-24 px-6 relative scroll-mt-24">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="text-[#D4AF37] text-xs font-mono uppercase tracking-widest mb-3 font-semibold"
+            >
+              Multi-Layered Surface Assessment
+            </motion.p>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-3xl sm:text-5xl font-black mb-4 text-[#F5F3ED]"
+            >
+              One Target URL. Four Deep Security Layers.
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.15 }}
+              className="text-[#8E8A80] text-base sm:text-lg max-w-2xl mx-auto"
+            >
+              Passive inspection uncovers perimeter misconfigurations across network protocols,
+              browser security policies, technology components, and exposed data paths.
+            </motion.p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {SECURITY_LAYERS.map((layer, idx) => (
+              <motion.div
+                key={layer.title}
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="glass-card p-8 rounded-xl border border-[#2A2A2A] bg-[#111111] hover:border-[#5C4A20] transition-all group"
+              >
+                <div className="flex items-start justify-between mb-5">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#5C4A20]/20 border border-[#5C4A20] group-hover:scale-105 transition-transform">
+                    <layer.icon className="w-6 h-6 text-[#D4AF37]" />
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-mono text-[#D4AF37] bg-[#161616] border border-[#2A2A2A]">
+                    {layer.badge}
+                  </span>
+                </div>
+
+                <h3 className="text-xl font-bold text-[#F5F3ED] mb-2 group-hover:text-[#D4AF37] transition-colors">
+                  {layer.title}
+                </h3>
+                <p className="text-sm text-[#8E8A80] mb-6 leading-relaxed">
+                  {layer.desc}
+                </p>
+
+                <div className="space-y-2.5 pt-4 border-t border-[#1F1F1F]">
+                  {layer.checks.map((chk) => (
+                    <div key={chk} className="flex items-center gap-2.5 text-xs text-[#C5C2BA] font-mono">
+                      <Check className="w-3.5 h-3.5 text-[#4FAF72] flex-shrink-0" />
+                      <span>{chk}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PIPELINE SECTION ── */}
+      <section id="pipeline" className="py-24 px-6 bg-[#0D0D0D]/60 border-y border-[#2A2A2A] scroll-mt-24">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <p className="text-[#D4AF37] text-xs font-mono uppercase tracking-widest mb-3 font-semibold">
+              Execution Architecture
+            </p>
+            <h2 className="text-3xl sm:text-5xl font-black mb-4 text-[#F5F3ED]">
+              From URL to Actionable Security Insight
+            </h2>
+            <p className="text-[#8E8A80] text-base sm:text-lg max-w-2xl mx-auto">
+              A transparent, non-destructive 6-stage execution pipeline designed for zero downtime and repeatable assessments.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {PIPELINE_STEPS.map((step, idx) => (
+              <motion.div
+                key={step.num}
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="glass-card p-6 rounded-xl border border-[#2A2A2A] bg-[#111111] relative hover:border-[#5C4A20]/60 transition-all"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-3xl font-black font-mono text-[#2A2A2A] group-hover:text-[#5C4A20] transition-colors">
+                    {step.num}
+                  </span>
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-[#D4AF37] px-2.5 py-0.5 rounded bg-[#1A1A1A] border border-[#2A2A2A]">
+                    {step.sub}
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold text-[#F5F3ED] mb-2">{step.title}</h3>
+                <p className="text-sm text-[#8E8A80] leading-relaxed">{step.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── FEATURES ── */}
-      <section id="features" ref={featuresRef as any} className="py-24 px-6">
+      <section id="features" ref={featuresRef as any} className="py-24 px-6 scroll-mt-24">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <motion.p
@@ -304,8 +523,51 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── OWASP TOP 10:2025 SECTION ── */}
+      <section id="owasp" className="py-24 px-6 bg-[#0D0D0D]/60 border-y border-[#2A2A2A] scroll-mt-24">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="text-[#D4AF37] text-xs font-mono uppercase tracking-widest mb-3 inline-block font-semibold">
+              Industry Standard Taxonomy
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-black mb-4 text-[#F5F3ED]">
+              Direct Mapping to OWASP Top 10:2025
+            </h2>
+            <p className="text-[#8E8A80] text-base sm:text-lg max-w-2xl mx-auto">
+              Every passive detector in SentinelScan corresponds to authoritative security frameworks,
+              enabling seamless communication between engineering and security compliance teams.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {OWASP_CATEGORIES.map((cat, idx) => (
+              <motion.div
+                key={cat.code}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.05 }}
+                className="glass-card p-5 rounded-xl border border-[#2A2A2A] bg-[#111111] hover:border-[#5C4A20] transition-all flex items-start gap-4 group"
+              >
+                <div className="px-2.5 py-1 rounded bg-[#1A1A1A] border border-[#2A2A2A] text-xs font-mono font-bold text-[#D4AF37] group-hover:border-[#5C4A20] transition-colors flex-shrink-0">
+                  {cat.code}
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-[#F5F3ED] text-base mb-1 group-hover:text-[#D4AF37] transition-colors">
+                    {cat.title}
+                  </h3>
+                  <p className="text-xs text-[#8E8A80] leading-relaxed">
+                    {cat.scope}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── HOW IT WORKS ── */}
-      <section id="how-it-works" className="py-24 px-6 bg-[#0D0D0D]/60">
+      <section id="how-it-works" className="py-24 px-6 bg-[#0D0D0D]/60 scroll-mt-24">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-[#D4AF37] text-sm font-semibold uppercase tracking-widest mb-3">Simple Process</p>
           <h2 className="text-4xl font-black mb-16 text-[#F5F3ED]">Security in 3 Steps</h2>
@@ -341,7 +603,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── PRICING ── */}
-      <section id="pricing" className="py-24 px-6">
+      <section id="pricing" className="py-24 px-6 scroll-mt-24">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-[#D4AF37] text-sm font-semibold uppercase tracking-widest mb-3">Pricing</p>
@@ -419,7 +681,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── FAQ ── */}
-      <section id="faq" className="py-24 px-6">
+      <section id="faq" className="py-24 px-6 scroll-mt-24">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-[#D4AF37] text-sm font-semibold uppercase tracking-widest mb-3">FAQ</p>

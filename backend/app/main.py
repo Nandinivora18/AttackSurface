@@ -11,7 +11,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
 from app.database import create_tables
-from app.routers import auth, users, scans, reports, admin, notifications, oauth
+from app.routers import auth, users, scans, reports, admin, notifications, oauth, ai
 from app.exceptions import SentinelException, sentinel_exception_handler
 
 logging.basicConfig(
@@ -155,6 +155,7 @@ app.include_router(scans.router)
 app.include_router(reports.router)
 app.include_router(notifications.router)
 app.include_router(admin.router)
+app.include_router(ai.router)
 
 
 @app.get("/api/health", tags=["Health"])
@@ -251,6 +252,12 @@ async def readiness_check():
             "environment": settings.ENVIRONMENT,
         }
     )
+
+
+@app.get("/docs", include_in_schema=False)
+async def docs_redirect():
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/api/docs")
 
 
 @app.exception_handler(404)

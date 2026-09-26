@@ -3,7 +3,7 @@ import uuid
 import bcrypt
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 from jose import jwt
 
 from app.models.user import User, UserRole
@@ -421,5 +421,120 @@ async def test_normal_user_cannot_delete_users(client: AsyncClient, normal_user:
         headers={"Authorization": f"Bearer {user_token}"},
     )
     assert res.status_code == 403
+    assert "Admin access required" in res.json().get("detail", "")
+
+
+@pytest.mark.asyncio
+async def test_admin_cannot_delete_self(client: AsyncClient, admin_user: User, db: AsyncSession):
+    """An admin cannot delete their own account via the admin endpoint (server-side)."""
+    admin_token = create_access_token(admin_user.id, admin_user.role.value)
+    res = await client.delete(
+        f"/api/admin/users/{admin_user.id}",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert res.status_code == 400
+    assert "your own account" in res.json().get("detail", "").lower()
+
+    # Admin must still exist
+    check = await db.execute(select(User).where(User.id == admin_user.id))
+    assert check.scalar_one_or_none() is not None
+
+
+@pytest.mark.asyncio
+async def test_admin_cannot_delete_another_admin(client: AsyncClient, admin_user: User, db: AsyncSession):
+    """An admin cannot delete another administrator account."""
+    other_admin = User(
+        email=f"other_admin_{uuid.uuid4().hex[:6]}@sentinelscan.io",
+        name="Other Admin",
+        password_hash=hash_password("OtherAdminPass123!"),
+        role=UserRole.admin,
+        is_verified=True,
+    )
+    db.add(other_admin)
+    await db.commit()
+    await db.refresh(other_admin)
+
+    admin_token = create_access_token(admin_user.id, admin_user.role.value)
+    res = await client.delete(
+        f"/api/admin/users/{other_admin.id}",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert res.status_code == 403
+    assert "Administrator accounts cannot be deleted" in res.json().get("detail", "")
+
+    # Other admin must still exist
+    check = await db.execute(select(User).where(User.id == other_admin.id))
+    assert check.scalar_one_or_none() is not None
+
+    await db.execute(delete(User).where(User.id == other_admin.id))
+    await db.commit()
+
+
+@pytest.mark.asyncio
+async def test_cannot_delete_last_remaining_admin(client: AsyncClient, admin_user: User, db: AsyncSession):
+    """The system must never allow deletion of the last remaining admin account.
+
+    With exactly one admin in the system, any deletion attempt against that
+    account (including self-deletion) must be rejected and the admin retained.
+    """
+    admin_count_before = (
+        await db.execute(select(func.count(User.id)).where(User.role == UserRole.admin))
+    ).scalar() or 0
+
+    admin_token = create_access_token(admin_user.id, admin_user.role.value)
+    res = await client.delete(
+        f"/api/admin/users/{admin_user.id}",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert res.status_code == 400
+
+    admin_count_after = (
+        await db.execute(select(func.count(User.id)).where(User.role == UserRole.admin))
+    ).scalar() or 0
+    assert admin_count_after >= 1
+    assert admin_count_after == admin_count_before
+
+
+@pytest.mark.asyncio
+async def test_admin_can_delete_normal_user(client: AsyncClient, admin_user: User, db: AsyncSession):
+    """Authorized deletion of a normal (non-admin) user continues to work."""
+    victim = User(
+        email=f"victim_del_{uuid.uuid4().hex[:6]}@sentinelscan.io",
+        name="Delete Me",
+        password_hash=hash_password("VictimPass123!"),
+        role=UserRole.user,
+        is_verified=True,
+    )
+    db.add(victim)
+    await db.commit()
+    await db.refresh(victim)
+
+    admin_token = create_access_token(admin_user.id, admin_user.role.value)
+    res = await client.delete(
+        f"/api/admin/users/{victim.id}",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert res.status_code == 204
+
+    check = await db.execute(select(User).where(User.id == victim.id))
+    assert check.scalar_one_or_none() is None
+
+
+@pytest.mark.asyncio
+async def test_unauthenticated_delete_rejected(client: AsyncClient):
+    """Deletion requires authentication — unauthenticated request returns 401."""
+    res = await client.delete(f"/api/admin/users/{uuid.uuid4()}")
+    assert res.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_delete_nonexistent_user_returns_404(client: AsyncClient, admin_user: User, db: AsyncSession):
+    """Deleting a non-existent user returns 404 (no user existence leak for admins)."""
+    admin_token = create_access_token(admin_user.id, admin_user.role.value)
+    res = await client.delete(
+        f"/api/admin/users/{uuid.uuid4()}",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert res.status_code == 404
 
 

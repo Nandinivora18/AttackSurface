@@ -90,6 +90,30 @@ REDACT_PATTERNS = [
     (re.compile(r'\bgithub_pat_[A-Za-z0-9_]{22,}\b'), '[REDACTED_GITHUB_TOKEN]'),
     # ── Slack tokens (bot/user/app/refresh classes) ───────────────────────
     (re.compile(r'\bxox[abpr]-[A-Za-z0-9-]{10,}\b'), '[REDACTED_SLACK_TOKEN]'),
+    # ── PEM PRIVATE KEY blocks (leaf key material only — certs stay) ──────
+    # Matches the full multi-line -----BEGIN ... PRIVATE KEY----- ... -----END
+    # ... PRIVATE KEY----- block. Certificate blocks (-----BEGIN CERTIFICATE----)
+    # are public material and deliberately remain untouched.
+    (re.compile(
+        r'(?s)-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----'
+    ), '[REDACTED_PRIVATE_KEY]'),
+    # ── Google API keys (AIza + 35 base64url chars) ───────────────────────
+    (re.compile(r'\bAIza[0-9A-Za-z_-]{35}\b'), '[REDACTED_GOOGLE_KEY]'),
+    # ── Stripe SECRET keys (publishable pk_ keys are public — not matched) ─
+    (re.compile(r'\bsk_(?:live|test)_[0-9a-zA-Z]{20,}\b'), '[REDACTED_STRIPE_KEY]'),
+    # ── Anthropic keys (sk-ant-api<NN>-<long suffix>) ─────────────────────
+    (re.compile(r'\bsk-ant-api[0-9]{2}-[0-9A-Za-z]{20,}\b'), '[REDACTED_ANTHROPIC_KEY]'),
+    # ── OpenAI project keys (sk-proj-...) ─────────────────────────────────
+    (re.compile(r'\bsk-proj-[0-9A-Za-z_-]{8,}\b'), '[REDACTED_OPENAI_KEY]'),
+    # ── SendGrid API keys (SG.<id>.<secret>) ──────────────────────────────
+    (re.compile(r'\bSG\.[0-9A-Za-z_-]{16,}\.[0-9A-Za-z_-]{32,}\b'), '[REDACTED_SENDGRID_KEY]'),
+    # ── AWS SECRET access keys (assignment forms only — the 40-char secret
+    #    alone is indistinguishable from a git SHA, which must survive) ─────
+    (re.compile(
+        r"""(?i)\b(aws_secret_access_key|aws_secret_key|secret_access_key|"""
+        r"""google_client_secret|sendgrid_api_key)\s*[:=]\s*"""
+        r"""("[^"\n]{8,}"|'[^'\n]{8,}'|\S+)"""
+    ), r'\1=[REDACTED]'),
     # ── Standalone Basic auth (no Authorization: prefix needed) ───────────
     # Only fires on a ≥16-char base64-shaped blob mixing upper+lowercase,
     # so prose like "HTTP Basic authentication is enabled" is untouched.

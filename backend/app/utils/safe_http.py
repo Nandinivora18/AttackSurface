@@ -15,6 +15,9 @@ Design note:
   safe_fetch_http()            — async; uses async_resolve_and_pin internally.
   SafeFetchClient              — async context manager drop-in for httpx.AsyncClient
                                   that routes every get() through safe_fetch_http.
+  BoundedAsyncClient           — httpx.AsyncClient subclass that bounds every
+                                  fully-buffered response body at
+                                  MAX_HTTP_RESPONSE_BYTES (see read_body_bounded).
 
 Fail-closed policy: any DNS resolution error, unexpected exception, or non-public
 resolved address rejects the target. Connection is never attempted on rejection.
@@ -61,6 +64,19 @@ LOCALHOST_ALIASES = {
 NAT64_PREFIX = ipaddress.IPv6Network("64:ff9b::/96")
 
 
+# Maximum response body any scanner HTTP client may materialize in memory.
+# Conservative 1 MiB cap (aligned with the crawler's existing max_response_size
+# default); a body larger than this is truncated and flagged rather than fully
+# buffered. Applied centrally in BoundedAsyncClient so every scanner fetch is
+# covered regardless of which client class the module constructs.
+MAX_HTTP_RESPONSE_BYTES = 1_048_576
+
+# Passive scan port policy: only standard web ports (HTTP 80 / HTTPS 443)
+# are ever contacted. Ports implied by the scheme are allowed implicitly; any
+# other explicit port is rejected before resolution or connection is attempted.
+PORT_POLICY_MESSAGE = "Only HTTP/HTTPS web ports 80 and 443 are supported."
+
+
 def validate_ip_address(ip_str: str) -> Tuple[bool, str]:
     """Check if an IP string belongs to any forbidden loopback/private/link-local/multicast range."""
     try:
@@ -84,6 +100,29 @@ def validate_ip_address(ip_str: str) -> Tuple[bool, str]:
         return True, ""
     except ValueError:
         return False, f"Invalid IP address format: {ip_str}"
+
+
+def port_policy_error(scheme: str, port: Optional[int]) -> Optional[str]:
+    """
+    Enforce the passive scanner's public port policy (HTTP 80 / HTTPS 443 only).
+
+    Returns a user-facing rejection reason when the URL uses a denied port, or
+    None when the request should be permitted. Centralized so the API schema,
+    validate_url_target(), and _pin_target() can never drift apart.
+
+    Scheme/port mismatches (http://host:443, https://host:80) are rejected
+    deterministically rather than silently rewritten, because changing the
+    effective scheme of a scanned URL would change its TLS expectations.
+    """
+    if port is None:
+        return None
+    if port not in (80, 443):
+        return PORT_POLICY_MESSAGE
+    if scheme == "http" and port == 443:
+        return "URL scheme 'http' cannot use port 443; use https:// for port 443."
+    if scheme == "https" and port == 80:
+        return "URL scheme 'https' cannot use port 80; use http:// for port 80."
+    return None
 
 
 def resolve_and_validate_host(hostname: str) -> Tuple[bool, str, List[str]]:
@@ -175,15 +214,21 @@ def validate_url_target(url: str) -> Tuple[bool, str, Optional[str]]:
     if not hostname:
         return False, "URL contains no valid host destination.", None
 
+    # Port policy runs before any DNS work: denied ports are rejected outright
+    # without resolving or contacting the target.
+    try:
+        port = parsed.port
+    except ValueError:
+        return False, f"Malformed URL: port out of range 0-65535 in '{raw}'.", None
+    policy_msg = port_policy_error(parsed.scheme, port)
+    if policy_msg:
+        return False, policy_msg, None
+
     safe, reason, _ = resolve_and_validate_host(hostname)
     if not safe:
         return False, reason, None
 
     # Build sanitized URL without credentials
-    try:
-        port = parsed.port
-    except ValueError:
-        return False, f"Malformed URL: port out of range 0-65535 in '{raw}'.", None
     port_str = f":{port}" if port and port not in (80, 443) else ""
     sanitized = f"{parsed.scheme}://{hostname}{port_str}{parsed.path or '/'}"
     if parsed.query:
@@ -247,6 +292,10 @@ def _pin_target(url: str) -> Tuple[bool, str, Optional[str], Optional[str], Opti
     except ValueError:
         return False, f"Malformed URL: port out of range 0-65535 in '{raw}'.", None, None, None
 
+    policy_msg = port_policy_error(parsed.scheme, port)
+    if policy_msg:
+        return False, policy_msg, None, None, None
+
     hostname = (parsed.hostname or "").lower().strip()
     if not hostname:
         return False, "URL contains no valid host destination.", None, None, None
@@ -296,6 +345,147 @@ def pin_same_host(target_url: str, conn_url: str) -> str:
     return f"{rebuilt.scheme}://{rebuilt.netloc}{t.path or '/'}" + (f"?{t.query}" if t.query else "")
 
 
+async def read_body_bounded(
+    response: httpx.Response, limit: int = MAX_HTTP_RESPONSE_BYTES
+) -> Tuple[bytes, bool]:
+    """
+    Capture a response body without ever holding more than `limit` bytes.
+
+    Reads via a single streaming iterator and stops pulling the moment the cap
+    is reached. One extra probe of the same iterator distinguishes a body that
+    ends exactly at the cap (safe, truncated=False) from one that continues
+    past it (truncated=True). The underlying stream is always closed so pooled
+    connections and chunked responses are released cleanly.
+
+    Content-Length is never trusted alone: a declared length over the cap
+    short-circuits the body entirely (status and headers are preserved), but a
+    missing or lying Content-Length is still bounded by the streaming cap.
+
+    Returns (content_bytes, truncated).
+    """
+    try:
+        content_length = response.headers.get("content-length")
+        if content_length is not None:
+            try:
+                declared = int(content_length)
+            except (TypeError, ValueError):
+                declared = None
+        else:
+            declared = None
+
+        if declared is not None and declared > limit:
+            # Declared body is clearly over the cap: keep status + headers and
+            # skip the body read entirely. A materialized body is still capped
+            # rather than trusted, so a lying Content-Length cannot bypass us.
+            stored = getattr(response, "_content", None)
+            if stored is not None:
+                return stored[:limit], len(stored) > limit
+            return b"", True
+
+        chunks: List[bytes] = []
+        total = 0
+        truncated = False
+        iterator = response.aiter_bytes()
+        while total < limit:
+            try:
+                chunk = await iterator.__anext__()
+            except StopAsyncIteration:
+                break
+            if not chunk:
+                continue
+            room = limit - total
+            if len(chunk) > room:
+                # Overshoot: keep only the slice that fits the cap.
+                chunks.append(chunk[:room])
+                truncated = True
+                break
+            chunks.append(chunk)
+            total += len(chunk)
+
+        if total >= limit and not truncated:
+            # Probe the same iterator once more: silence means the body ends
+            # exactly at the cap, any data means it is actually over it.
+            try:
+                await iterator.__anext__()
+            except StopAsyncIteration:
+                pass
+            else:
+                truncated = True
+
+        return b"".join(chunks), truncated
+    finally:
+        await response.aclose()
+
+
+def _bounded_response(
+    raw: httpx.Response,
+    request: httpx.Request,
+    content: bytes,
+    truncated: bool,
+) -> httpx.Response:
+    """
+    Rebuild a materialized httpx.Response carrying only the bounded body.
+
+    Preserves status, headers (hence cookies and content-type), the original
+    request, and any redirected-response history. The captured body is replaced
+    with the bounded snapshot and a `body_truncated` flag is stamped into
+    extensions so callers can detect and report truncation.
+    """
+    extensions = dict(raw.extensions)
+    extensions["body_truncated"] = truncated
+    return httpx.Response(
+        status_code=raw.status_code,
+        headers=raw.headers,
+        content=content,
+        request=request,
+        extensions=extensions,
+        history=list(raw.history) if raw.history else None,
+    )
+
+
+class BoundedAsyncClient(httpx.AsyncClient):
+    """
+    httpx.AsyncClient that never materializes an unbounded response body.
+
+    Every fully-buffered request (get/request/post/etc., i.e. stream=False) is
+    intercepted at send(): the response is streamed, capped at
+    MAX_HTTP_RESPONSE_BYTES, and rebuilt as a bounded materialized response.
+    Content-Length is advisory only; the streaming cap is authoritative.
+
+    When a caller explicitly requests stream=True the raw streaming response is
+    returned untouched, since ownership of the stream has been handed over and
+    a cap can no longer be enforced after the fact.
+
+    get()/request() and friends are inherited unchanged, so tests patching
+    httpx.AsyncClient.get / httpx.AsyncClient.request at the class level
+    continue to intercept via normal MRO lookup.
+    """
+
+    async def send(
+        self,
+        request: httpx.Request,
+        *,
+        stream: bool = False,
+        auth: Optional[httpx.Auth] = httpx.USE_CLIENT_DEFAULT,
+        follow_redirects: bool = httpx.USE_CLIENT_DEFAULT,
+    ) -> httpx.Response:
+        if stream:
+            return await super().send(
+                request,
+                stream=True,
+                auth=auth,
+                follow_redirects=follow_redirects,
+            )
+        raw = await super().send(
+            request,
+            stream=True,
+            auth=auth,
+            follow_redirects=follow_redirects,
+        )
+        content, truncated = await read_body_bounded(raw, MAX_HTTP_RESPONSE_BYTES)
+        return _bounded_response(raw, request, content, truncated)
+
+
 async def safe_fetch_http(
     url: str,
     method: str = "GET",
@@ -330,7 +520,7 @@ async def safe_fetch_http(
     redirect_count = 0
     redirect_chain: list[httpx.Response] = []
 
-    async with httpx.AsyncClient(follow_redirects=False, timeout=timeout, verify=verify) as client:
+    async with BoundedAsyncClient(follow_redirects=False, timeout=timeout, verify=verify) as client:
         while redirect_count <= max_redirects:
             # Loop detection on the canonical (hostname) URL keeps hosts stable
             # even though the pinned connection URL uses the validated IP.

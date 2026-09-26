@@ -30,14 +30,10 @@ interface ScanState {
   setIsScanning: (v: boolean) => void;
 }
 
-export type ThemeMode = 'light' | 'dark' | 'system';
-
 interface UIState {
   sidebarOpen: boolean;
-  theme: ThemeMode;
   setSidebarOpen: (v: boolean) => void;
   toggleSidebar: () => void;
-  setTheme: (theme: ThemeMode) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -179,17 +175,9 @@ export const useUIStore = create<UIState>()(
   persist(
     (set) => ({
       sidebarOpen: true,
-      theme: 'dark',
       setSidebarOpen: (v: boolean) => set({ sidebarOpen: v }),
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
-      setTheme: (theme: ThemeMode) => {
-        set({ theme: 'dark' });
-        if (typeof document !== 'undefined') {
-          document.documentElement.setAttribute('data-theme', 'dark');
-        }
-      },
     }),
     { name: 'sentinel-ui-storage' }
   )
 );
-

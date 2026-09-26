@@ -21,7 +21,7 @@ import urllib.parse
 from typing import Any
 import httpx
 
-from app.utils.safe_http import async_resolve_and_pin
+from app.utils.safe_http import async_resolve_and_pin, BoundedAsyncClient
 
 logger = logging.getLogger(__name__)
 
@@ -154,7 +154,7 @@ async def assess_a01_access_control(
         if is_safe:
             try:
                 test_origin = "https://evil-untrusted-origin.sentinelscan.test"
-                async with httpx.AsyncClient(timeout=4.0, follow_redirects=False) as client:
+                async with BoundedAsyncClient(timeout=4.0, follow_redirects=False) as client:
                     probe_resp = await client.get(
                         conn_url,
                         headers={"Origin": test_origin, "User-Agent": "SentinelScan-Security-Scanner/2.0", "Host": host_header},
@@ -187,7 +187,7 @@ async def assess_a01_access_control(
     parsed = urllib.parse.urlparse(target_url)
     base_origin = f"{parsed.scheme}://{parsed.netloc}"
 
-    async with httpx.AsyncClient(timeout=4.0, follow_redirects=False) as client:
+    async with BoundedAsyncClient(timeout=4.0, follow_redirects=False) as client:
         for path in SENSITIVE_PATHS:
             probe_url = urllib.parse.urljoin(base_origin, path)
             is_safe, _, _, conn_url, host_header = await async_resolve_and_pin(probe_url)
@@ -234,7 +234,7 @@ async def assess_a01_access_control(
             k: v for k, v in auth_context.get("headers", {}).items()
             if isinstance(k, str) and isinstance(v, str)
         }
-        async with httpx.AsyncClient(timeout=4.0, follow_redirects=False) as client:
+        async with BoundedAsyncClient(timeout=4.0, follow_redirects=False) as client:
             for ep_url in discovered_urls[:5]:
                 is_safe, _, _, conn_url, host_header = await async_resolve_and_pin(ep_url)
                 if not is_safe or conn_url is None or host_header is None:

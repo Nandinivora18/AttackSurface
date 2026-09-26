@@ -82,19 +82,21 @@ Once a scan is enqueued, the progress screen shows:
 4. **Status messages** — e.g. "Found 3 header issues", "Detected 4 technologies"
 
 Stages in order:
-1. DNS Analysis
-2. SSL/TLS Check
-3. Security Headers
-4. Technology Detection
-5. CVE Database Lookup
-6. Content Analysis
-7. Generating Report
+1. DNS Analysis (Stage 1)
+2. SSL/TLS Check (Stage 2)
+3. Security Headers & Cookies (Stage 3)
+4. Technology Detection (Stage 4)
+5. CVE Database Lookup & EOL Lifecycle (Stage 5)
+6. External Exposure Deep Analysis (Stage 5e — 45 detectors across 12 domains)
+7. Content & Crawler Analysis (Stage 6)
+8. OWASP Top 10:2025 Assessment (Stage 7)
+9. Scoring & Report Generation (Stage 8)
 
 When the scan completes, you are automatically redirected to the full report.
 
 ### Cancelling a Scan
 
-Click the **Cancel** button during an active scan to stop it. Cancellation takes effect at the next stage boundary (usually within 20 seconds). No report is generated for a cancelled scan.
+Click the **Cancel** button during an active scan to stop it. Cancellation takes effect at the next stage boundary (cooperative inter-stage cancellation). No report is generated for a cancelled scan.
 
 ---
 
@@ -110,21 +112,20 @@ The report header shows:
 
 ### Findings Table
 
-The findings table lists every issue detected. You can:
+The findings table lists every issue detected across all 82 registered detectors. You can:
 
 - **Filter by severity** — click severity chips (Critical, High, Medium, Low, Info)
-- **Filter by category** — use the category dropdown
+- **Filter by category** — use the category dropdown (Headers, SSL, DNS, Tech, Exposure, OWASP)
 - **Search** — type to search by title or description
 - **Sort** — click column headers
 
 Click any finding row to expand it and see:
-- Full description
-- Evidence (what was observed)
-- CVSS score and CVE ID (if applicable)
-- OWASP Top 10 mapping
-- MITRE ATT&CK technique
-- Remediation steps
-- Reference links
+- Full description, problem statement, and impact analysis
+- Machine-verifiable evidence (headers, cipher negotiation, DNS records, or redacted secret strings)
+- CVSS score, CVE ID, and CWE ID
+- OWASP Top 10:2025 mapping and MITRE ATT&CK technique
+- Sequential fix steps with copy-ready configuration snippets (Nginx, Apache, Express)
+- Official RFC and documentation reference links
 
 ### Score Breakdown
 
@@ -135,7 +136,7 @@ The score breakdown section shows each category's score as a colored progress ba
 
 ### Tech Stack
 
-The Tech Stack card lists every technology detected, organized by category (Web Server, CMS, JavaScript Framework, etc.). Version numbers are shown when detected.
+The Tech Stack card lists every technology detected, organized by category (Web Server, CMS, JavaScript Framework, etc.). Version numbers and EOL flags are shown when detected.
 
 ### SSL/TLS Details
 
@@ -151,36 +152,40 @@ Shows:
 Shows:
 - SPF record (if present)
 - DMARC policy (if present)
-- DKIM detection status
-- MX records
+- DKIM selector status
+- MX and TXT records
 
 ---
 
-## Downloading PDF Reports
+## Sentinel Intelligence — Security Assistant
 
-From any report page, click **Download PDF** (or the PDF icon in the report header).
+SentinelScan embeds a contextual AI security analyst powered by Google Gemini 3.6 Flash. Sentinel Intelligence is grounded in scan evidence and helps operators understand findings without speculative guessing.
 
-The PDF downloads immediately and includes:
-- All findings with evidence
-- Security score and grade
-- Executive summary
-- Remediation recommendations
-- OWASP and MITRE mappings
-- Certificate and DNS details
-
-**File name format:** `sentinelscan-report-{scan-id}.pdf`
+### How to Use Sentinel Intelligence
+1. **Ask Sentinel Floating Button**: Click the **Ask Sentinel** floating button in the bottom-right corner to open the sliding analyst panel.
+2. **Contextual Finding Explanation**: In any finding card or drawer, click **Explain with AI** to immediately prompt Sentinel Intelligence with the specific finding, observed evidence, and remediation steps.
+3. **Conversational Follow-Up**: Ask natural follow-up questions (e.g., *"How do I configure this CSP directive for an Nginx reverse proxy?"*).
+4. **Rate Limits**: AI queries are rate-limited to **20 requests per hour per user** via a sliding-window tracker.
 
 ---
 
-## Sharing Reports
+## Circle to Sentinel — Visual Region Inspection
 
-Reports can be shared publicly via a link without requiring the recipient to have an account.
+Circle to Sentinel allows you to select any portion of the SentinelScan interface and have the AI analyze it visually.
 
-1. On the report page, click **Share Report**
-2. Set an expiry period (1 day, 7 days, or 30 days)
-3. Copy the generated link
+### How to Use Circle to Sentinel
+1. **Shortcut or Button**: Press `Ctrl+Shift+S` (Windows/Linux) or `Cmd+Shift+S` (macOS), or click the visual inspect button.
+2. **Select UI Region**: Drag a selection box over any UI element (a score ring, finding card, cipher list, or chart).
+3. **Automatic Analysis**: Releasing the mouse opens Ask Sentinel with the prompt *"Analyzing selected area..."*. Sentinel Intelligence receives the cropped viewport screenshot, intersecting DOM text, and scan findings.
+4. **Privacy & Security**: Circle to Sentinel captures only the SentinelScan browser interface—never other desktop windows or tabs. Visual context is held in server memory for inference only and is never stored to disk or database.
 
-The share link is accessible without login and shows the full report. The link automatically expires after the chosen period.
+---
+
+## Downloading Reports
+
+From any report page, you can export your findings:
+- **Download PDF**: Generates a professional ReportLab PDF report (Executive Summary or comprehensive Technical Report) with sensitive data redacted.
+- **Download JSON**: Generates a machine-readable JSON export for SIEM integration or compliance archival.
 
 ---
 
@@ -195,31 +200,9 @@ Navigate to **History** in the sidebar to see all your past scans.
 
 ---
 
-## Analytics
-
-The **Analytics** page shows visual trends across all your scans:
-
-- **Score over time** — line chart of security scores
-- **Findings by severity** — stacked bar chart
-- **Most common vulnerability categories** — pie chart
-- **Average score per domain** — if you've scanned the same domain multiple times
-
----
-
 ## OWASP View
 
-The **OWASP** page groups all findings from your reports by OWASP Top 10:2025 category. This helps you understand which OWASP risks are most prevalent across your assets.
-
----
-
-## Compare Scans
-
-The **Compare** page allows side-by-side comparison of two scan reports. Select two scans from the dropdowns to see:
-
-- **New issues** — appeared in the second scan but not the first
-- **Resolved issues** — present in the first scan, gone in the second
-- **Unchanged** — present in both
-- **Score delta** — how the score changed
+The **OWASP** page groups all findings from your reports by OWASP Top 10:2025 category (A01 through A10). This helps you understand which OWASP risks are most prevalent across your assets.
 
 ---
 
@@ -234,20 +217,20 @@ Click any notification to navigate to the relevant report. Click **Mark all read
 
 ---
 
-## Profile and Settings
+## Profile and Usage
 
 ### Profile
 
 Navigate to **Profile** to:
 - Update your display name
 - Change your password
-- View your account creation date
+- View your account creation date and role
 
-### Settings
+### Rate Limits & Usage
 
-Navigate to **Settings** to:
-- Configure scanner preferences (stored in `scan_preferences` JSON field)
-- View your usage (scans used this hour, active scans)
+- **Concurrent Scans**: Up to 2 active scans running concurrently.
+- **Hourly Scan Quota**: Up to 10 scans created per hour.
+- **AI Quota**: Up to 20 Sentinel Intelligence requests per hour.
 
 ---
 

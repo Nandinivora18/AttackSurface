@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import GlassCard from '@/components/shared/GlassCard';
 import SeverityBadge from '@/components/shared/SeverityBadge';
+import FindingAskButton from '@/components/ai/FindingAskButton';
 import api from '@/lib/api';
 import { Severity } from '@/types';
 import { formatDate, timeAgo, resolveFindingLocation, formatConfidence } from '@/lib/utils';
@@ -162,7 +163,7 @@ export default function FindingDetailPage() {
               </p>
             </div>
 
-            {/* Status Workflow Selector */}
+            {/* Status Workflow + Ask Sentinel */}
             <div className="flex items-end gap-3 flex-wrap sm:flex-nowrap">
               <div className="space-y-1">
                 <label className="block text-[10px] uppercase font-bold text-[#A7A39A]">Workflow Status</label>
@@ -179,6 +180,11 @@ export default function FindingDetailPage() {
                   ))}
                 </select>
               </div>
+              <FindingAskButton
+                findingId={findingId}
+                findingTitle={finding.title}
+                reportScanUrl={finding.asset_url}
+              />
             </div>
           </div>
 

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
 from sqlalchemy.orm import selectinload
 from app.database import get_db
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.scan import Scan, ScanStatus
 from app.models.report import Report
 from app.models.finding import Finding
@@ -132,6 +132,23 @@ async def delete_user(
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    if user.role == UserRole.admin:
+        # Defense-in-depth: never allow the last remaining admin account to be
+        # deleted, regardless of the caller. This is unreachable via another
+        # admin (deleting an admin is already forbidden below) but protects any
+        # future role/flow that would permit an admin account to be removed.
+        admin_count = (await db.execute(
+            select(func.count(User.id)).where(User.role == UserRole.admin)
+        )).scalar() or 0
+        if admin_count <= 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot delete the last remaining administrator account",
+            )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Administrator accounts cannot be deleted to prevent loss of privileged access",
+        )
     db.add(AuditLog(
         user_id=current_admin.id,
         action="user_deleted",

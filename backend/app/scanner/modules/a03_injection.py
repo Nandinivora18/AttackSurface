@@ -19,7 +19,7 @@ import urllib.parse
 from typing import Any
 import httpx
 
-from app.utils.safe_http import async_resolve_and_pin, pin_same_host
+from app.utils.safe_http import async_resolve_and_pin, pin_same_host, BoundedAsyncClient
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ async def assess_a03_injection(
             "limitations": "No user-supplied query parameters or form inputs were discovered on crawled same-origin pages.",
         }
 
-    async with httpx.AsyncClient(timeout=timeout_seconds, follow_redirects=False) as client:
+    async with BoundedAsyncClient(timeout=timeout_seconds, follow_redirects=False) as client:
         for param_name, sample_urls in discovered_parameters.items():
             if tested_count >= max_tested_params:
                 break

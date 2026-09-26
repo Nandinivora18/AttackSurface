@@ -1,20 +1,19 @@
 # SentinelScan — Detector Coverage Report
 
-> Auto-generated from `app/scanner/metadata.py` and `app/scanner/header_analyzer.py`.
-> Re-generate: `python -m app.scanner.coverage_report > docs/COVERAGE.md`
+> Maintained in sync with `app/scanner/metadata.py` (the legacy `coverage_report` generator no longer exists — the `DETECTOR_REGISTRY` in `metadata.py` is the single source of truth).
 
 ## Summary
 
 | Metric | Count |
 |--------|-------|
-| Total detectors | **37** |
-| Detector categories | **16** |
-| Security headers checked | **10** |
-| OWASP Top 10 categories covered | **8** / 10 |
-| RFC references | **17** |
-| OWASP standard references | **23** |
-| CWE references | **19** |
-| NIST references | **3** |
+| Total detectors | **82** (37 baseline + 45 External Exposure) |
+| Detector categories | **28** (16 baseline + 12 external exposure domains) |
+| Security headers checked | **16+** |
+| OWASP Top 10 categories covered | **10** / 10 |
+| RFC references | **24+** |
+| OWASP standard references | **32+** |
+| CWE references | **28+** |
+| NIST references | **4+** |
 
 ## Detectors by Category
 
@@ -152,18 +151,37 @@
 
 ## OWASP Top 10:2025 Coverage
 
-| OWASP ID | Category | Detectors |
-|----------|----------|-----------|
-| **A01** | Broken Access Control | ✅ 4 detectors |
-| **A02** | Security Misconfiguration | ✅ 18 detectors |
-| **A03** | Software Supply Chain Failures | ✅ 4 detectors |
-| **A04** | Cryptographic Failures | ✅ 7 detectors |
-| **A05** | Injection | ✅ 1 detector |
-| **A06** | Insecure Design | ✅ 1 detector |
-| **A07** | Authentication Failures | ✅ 2 detectors |
-| **A08** | Software or Data Integrity Failures | ⬜ Not covered (outside passive scanning scope) |
-| **A09** | Security Logging and Alerting Failures | ✅ 1 detector |
-| **A10** | Mishandling of Exceptional Conditions | ⬜ Not covered (outside passive scanning scope) |
+Across all 82 registered detectors (37 core baseline + 45 external exposure), SentinelScan achieves comprehensive coverage across all 10 OWASP Top 10:2025 categories:
+
+| OWASP ID | Category | Detectors | Baseline + Exposure Highlights |
+|----------|----------|-----------|--------------------------------|
+| **A01** | Broken Access Control | ✅ 12 detectors | CORS wildcard with credentials, sensitive path exposure, SSRF parameter surface, null origin CORS, public cloud bucket listing |
+| **A02** | Security Misconfiguration | ✅ 25 detectors | Missing HSTS/CSP/XFO/XCTO headers, permissive SPF, missing DMARC, open source maps, exposed `.env`/`.git` files |
+| **A03** | Software Supply Chain Failures | ✅ 9 detectors | NIST NVD CVE correlation, EOL lifecycle detection, deprecated CDN dependencies, unversioned third-party libraries |
+| **A04** | Cryptographic Failures | ✅ 14 detectors | Expired/self-signed certs, weak TLS 1.0/1.1 protocols, weak ciphers, mixed-content scripts/styles, absent SCTs |
+| **A05** | Injection | ✅ 2 detectors | Controlled differential baseline canary analysis (SQLi/XSS/path traversal reflection indicators) |
+| **A06** | Insecure Design | ✅ 3 detectors | Architectural threat modeling, rate limit header absence, unkeyed cache poisoning reflection vectors |
+| **A07** | Authentication Failures | ✅ 6 detectors | Missing Secure/HttpOnly/SameSite cookie flags, basic auth over unencrypted HTTP, session fixation indicators |
+| **A08** | Software or Data Integrity Failures | ✅ 3 detectors | Subresource Integrity (`exposure.dep.no_sri`), untrusted third-party script CDN inclusions |
+| **A09** | Security Logging and Alerting Failures | ✅ 3 detectors | DMARC `p=none` without reporting URIs (`rua`/`ruf`), absent security contact records (`security.txt`) |
+| **A10** | Mishandling of Exceptional Conditions | ✅ 5 detectors | Exposed debug endpoints (`exposure.api.debug_endpoint`), Spring Boot Actuator (`exposure.api.actuator_exposed`), verbose stack trace leaks |
+
+## External Exposure Detection Domains (45 Detectors)
+
+The 45 External Exposure detectors are organized across 12 dedicated attack surface domains:
+
+1. **Web Security Configuration (4):** `exposure.cors.null_origin`, `exposure.cors.wildcard_creds`, `exposure.headers.missing_security`, `exposure.headers.server_tokens`
+2. **Authentication & Session Security (4):** `exposure.auth.cookie_no_secure`, `exposure.auth.cookie_no_httponly`, `exposure.auth.cookie_no_samesite`, `exposure.auth.basic_over_http`
+3. **API Exposure (4):** `exposure.api.openapi_exposed`, `exposure.api.graphql_exposed`, `exposure.api.debug_endpoint`, `exposure.api.actuator_exposed`
+4. **JavaScript Secrets (4):** `exposure.js.aws_keys`, `exposure.js.generic_tokens`, `exposure.js.github_tokens`, `exposure.js.private_keys`
+5. **Source Map Exposure (3):** `exposure.sourcemap.map_file_accessible`, `exposure.sourcemap.inline_sources`, `exposure.sourcemap.source_code_leak`
+6. **Sensitive Files / Backup (4):** `exposure.files.env_accessible`, `exposure.files.git_accessible`, `exposure.files.backup_accessible`, `exposure.files.config_accessible`
+7. **Cloud Storage Exposure (4):** `exposure.cloud.s3_bucket_public`, `exposure.cloud.gcs_bucket_public`, `exposure.cloud.azure_blob_public`, `exposure.cloud.bucket_listing`
+8. **DNS Security Expansion (4):** `exposure.dns.spf_permissive`, `exposure.dns.dmarc_missing`, `exposure.dns.dmarc_none`, `exposure.dns.zone_transfer`
+9. **TLS Deep Analysis (4):** `exposure.tls.weak_version`, `exposure.tls.weak_cipher`, `exposure.tls.cert_expired`, `exposure.tls.ct_not_logged`
+10. **Mixed Content (3):** `exposure.mixed_content.script`, `exposure.mixed_content.style`, `exposure.mixed_content.form_action`
+11. **Third-Party Dependency / SRI (3):** `exposure.dep.no_sri`, `exposure.dep.cdn_dependency`, `exposure.dep.deprecated_lib`
+12. **Web Cache / Response Exposure (4):** `exposure.cache.missing_no_store`, `exposure.cache.public_sensitive`, `exposure.cache.unkeyed_header`, `exposure.cache.authenticated_cache`
 
 ## Standards Referenced
 
@@ -243,5 +261,4 @@
 
 ---
 
-*This report is auto-generated. Do not edit manually.*
-*Generated by `python -m app.scanner.coverage_report`*
+*This report is maintained manually and must stay in sync with `app/scanner/metadata.py`.*

@@ -1,10 +1,10 @@
 'use client';
 import { useState } from 'react';
 import {
-  Bell, Moon, Sun, Monitor, Sliders,
+  Bell, Moon, Sliders,
   CheckCircle,
 } from 'lucide-react';
-import { useUIStore, ThemeMode } from '@/store';
+import { useUIStore } from '@/store';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { SectionCard } from '@/components/ui/SectionCard';
 import { Button } from '@/components/ui/Button';
@@ -50,7 +50,7 @@ function ToggleRow({
 }
 
 export default function SettingsPage() {
-  const { theme, setTheme } = useUIStore();
+  const { sidebarOpen } = useUIStore();
 
   const [emailScanComplete, setEmailScanComplete] = useState(true);
   const [emailSecurityAlerts, setEmailSecurityAlerts] = useState(true);
@@ -71,33 +71,14 @@ export default function SettingsPage() {
       />
 
       {/* ── 1. Appearance ── */}
-      <SectionCard icon={Sun} title="Appearance & Theme Mode" subtitle="Choose your preferred interface theme">
-        <div className="py-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#A7A39A] mb-3">Theme Mode</p>
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { id: 'light' as ThemeMode, label: 'Light', icon: Sun },
-              { id: 'dark'  as ThemeMode, label: 'Dark',  icon: Moon },
-              { id: 'system' as ThemeMode, label: 'System', icon: Monitor },
-            ].map((mode) => {
-              const active = theme === mode.id;
-              return (
-                <button
-                  key={mode.id}
-                  onClick={() => setTheme(mode.id)}
-                  aria-pressed={active}
-                  className={[
-                    'h-12 rounded-[10px] border text-sm font-semibold flex items-center justify-center gap-2 transition-all',
-                    active
-                      ? 'bg-[#5C4A20]/25 text-[#F5F3ED] border-[#5C4A20] shadow-[0_0_12px_rgba(212,175,55,0.15)]'
-                      : 'bg-[#0D0D0D] text-[#706C64] border-[#2A2A2A] hover:text-[#F5F3ED] hover:border-[#5C4A20]/50',
-                  ].join(' ')}
-                >
-                  <mode.icon className={`w-4 h-4 ${active ? 'text-[#D4AF37]' : 'text-[#706C64]'}`} aria-hidden />
-                  {mode.label}
-                </button>
-              );
-            })}
+      <SectionCard icon={Moon} title="Appearance" subtitle="Interface theme configuration">
+        <div className="py-2 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-[#0D0D0D] border border-[#2A2A2A] flex items-center justify-center">
+            <Moon className="w-4 h-4 text-[#D4AF37]" aria-hidden />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-[#F5F3ED]">Dark Mode</p>
+            <p className="text-xs text-[#706C64]">SentinelScan uses a permanent dark theme. No other mode is available.</p>
           </div>
         </div>
       </SectionCard>

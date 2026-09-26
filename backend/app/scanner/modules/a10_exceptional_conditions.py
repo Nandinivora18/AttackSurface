@@ -21,7 +21,7 @@ import urllib.parse
 from typing import Any
 import httpx
 
-from app.utils.safe_http import async_resolve_and_pin
+from app.utils.safe_http import async_resolve_and_pin, BoundedAsyncClient
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +110,7 @@ async def assess_a10_exceptional_conditions(
             ("/%00_invalid_encoding_probe", "Malformed URI Handling"),
         ]
 
-        async with httpx.AsyncClient(timeout=4.0, follow_redirects=False) as client:
+        async with BoundedAsyncClient(timeout=4.0, follow_redirects=False) as client:
             for probe_path, probe_label in err_probes:
                 probe_url = urllib.parse.urljoin(base_origin, probe_path)
                 is_safe, _, _, conn_url, host_header = await async_resolve_and_pin(probe_url)

@@ -162,6 +162,36 @@ def get_finding_identity(finding: dict, target_url: str = "") -> tuple:
     ):
         return ("HEADER_MISSING", title_lower, _normalize_host_or_endpoint(endpoint, target_url))
 
+    # Host-wide SPF policy findings (deduplicate between dns_checker and exposure_detector)
+    if "spf" in title_lower:
+        norm_host = _normalize_host_or_endpoint(endpoint, target_url)
+        if any(kw in title_lower for kw in ["+all", "pass-all", "pass all", "permissive"]):
+            return ("SPF_PASSALL", norm_host)
+        if any(kw in title_lower for kw in ["~all", "softfail"]):
+            return ("SPF_SOFTFAIL", norm_host)
+        if "missing" in title_lower:
+            return ("SPF_MISSING", norm_host)
+
+    # Host-wide DMARC policy findings (deduplicate between dns_checker and exposure_detector)
+    if "dmarc" in title_lower:
+        norm_host = _normalize_host_or_endpoint(endpoint, target_url)
+        if any(kw in title_lower for kw in ["missing", "no dmarc", "not found", "not configured"]):
+            return ("DMARC_MISSING", norm_host)
+        if any(kw in title_lower for kw in ["none", "monitor only", "p=none"]):
+            return ("DMARC_NONE_POLICY", norm_host)
+
+    # Host-wide server & tech banner disclosures (deduplicate between header_analyzer and exposure_detector)
+    if "server" in title_lower and ("disclose" in title_lower or "version" in title_lower) and "header" in title_lower:
+        return ("SERVER_VERSION_DISCLOSURE", _normalize_host_or_endpoint(endpoint, target_url))
+    if "x-powered-by" in title_lower:
+        return ("X_POWERED_BY_DISCLOSURE", _normalize_host_or_endpoint(endpoint, target_url))
+
+    # Host-wide TLS protocol and cipher findings (deduplicate between ssl_checker and exposure_detector)
+    if ("tls" in title_lower or "ssl" in title_lower) and ("deprecated" in title_lower or "weak protocol" in title_lower):
+        return ("TLS_WEAK_PROTOCOLS", _normalize_host_or_endpoint(endpoint, target_url))
+    if "cipher" in title_lower and "weak" in title_lower:
+        return ("TLS_WEAK_CIPHERS", _normalize_host_or_endpoint(endpoint, target_url))
+
     # General finding identity
     return (category.lower(), title_lower, endpoint.lower())
 
@@ -681,6 +711,59 @@ async def run_scan_job(ctx: dict, scan_id: str) -> dict:
 
         # Global deduplication pass across all collected findings
         all_findings = deduplicate_findings(all_findings, url)
+
+        # ── Stage 5e: External Exposure Detection (12 Domains) ────────── #
+        # Runs all 12 passive exposure detection domains in parallel.
+        # Uses SafeFetchClient internally — SSRF-safe by design.
+        # The target URL has already been SSRF-validated above; we pass the
+        # already-gathered stage results to avoid duplicate network requests.
+        if await _is_cancelled(scan_id):
+            await _handle_cancellation(ctx, scan_id, redis)
+            return {"status": "cancelled", "scan_id": scan_id}
+
+        await _emit(ctx, scan_id, 91, "Exposure Detection",
+                    "Analyzing external exposure: CORS, API surface, secrets, cloud, TLS, cache…")
+        _t["exposure_start"] = time.monotonic()
+        try:
+            from app.scanner.exposure_detector import run_exposure_detection
+            exposure_findings = await asyncio.wait_for(
+                run_exposure_detection(
+                    target_url=url,
+                    response_headers={k.lower(): v for k, v in header_result.get("raw_headers", {}).items()},
+                    html_body=tech_result.get("html_body", ""),
+                    cookies=raw_cookies,
+                    dns_result=dns_result,
+                    ssl_result=ssl_result,
+                    hostname=hostname,
+                ),
+                timeout=120.0,
+            )
+            _t["exposure_ms"] = round((time.monotonic() - _t["exposure_start"]) * 1000)
+            # Merge exposure findings (deduplicated against existing set)
+            existing_exposure_keys = {get_finding_identity(f, url) for f in all_findings}
+            new_exposure_count = 0
+            for ef in exposure_findings:
+                ef.setdefault("endpoint", url)
+                ekey = get_finding_identity(ef, url)
+                if ekey not in existing_exposure_keys:
+                    existing_exposure_keys.add(ekey)
+                    all_findings.append(ef)
+                    new_exposure_count += 1
+            logger.info(
+                f"EXPOSURE_DETECTION scan_id={scan_id} "
+                f"total={len(exposure_findings)} new={new_exposure_count} "
+                f"elapsed_ms={_t['exposure_ms']}"
+            )
+            await _emit(ctx, scan_id, 92, "Exposure Detection",
+                        f"Found {new_exposure_count} new exposure issues across 12 domains")
+        except asyncio.TimeoutError:
+            logger.warning(f"EXPOSURE_DETECTION_TIMEOUT scan_id={scan_id} (>120s) — skipping")
+            _t["exposure_ms"] = 120000
+            await _emit(ctx, scan_id, 92, "Exposure Detection", "Exposure detection timed out — continuing")
+        except Exception as exp_exc:
+            logger.warning(f"EXPOSURE_DETECTION_ERROR scan_id={scan_id}: {exp_exc}")
+            _t["exposure_ms"] = 0
+            await _emit(ctx, scan_id, 92, "Exposure Detection", "Exposure detection error — continuing")
 
         # ── Stage 5a: Clamp target-controlled strings ─────────────────── #
         # Hostile targets can return oversized header/DNS/content values.

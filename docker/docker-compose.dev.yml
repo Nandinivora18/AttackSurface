@@ -73,16 +73,31 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      # Wait for migrations (backend runs `alembic upgrade head` first) so the
+      # worker's startup reconcile never hits a missing table.
+      backend:
+        condition: service_healthy
+    # The backend image ships a HEALTHCHECK that probes GET /api/health, but the
+    # worker does NOT run uvicorn. Override so the worker is health-checked by its
+    # own process instead of a dead HTTP port.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,sys; (print('ok',flush=True),sys.exit(0)) if os.path.exists('/proc/1/cmdline') and b'run_worker.py' in open('/proc/1/cmdline','rb').read() else sys.exit(1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   frontend:
     build:
       context: ../frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-SentinelScan}
     container_name: sentinelscan-frontend-dev
     ports:
       - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
     depends_on:
       - backend
 

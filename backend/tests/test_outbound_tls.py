@@ -38,7 +38,7 @@ async def test_safe_fetch_defaults_to_verify_true():
         return (True, "", "https://example.com/", "https://93.184.216.34/", "example.com")
 
     with patch("app.utils.safe_http.async_resolve_and_pin", side_effect=fake_pin), \
-         patch("app.utils.safe_http.httpx.AsyncClient", side_effect=MockClient):
+         patch("app.utils.safe_http.BoundedAsyncClient", side_effect=MockClient):
         response, err = await safe_fetch_http("https://example.com/")
 
     assert response is not None, err
@@ -201,7 +201,7 @@ async def test_explicit_verify_false_propagated():
         return (True, "", "https://example.com/", "https://93.184.216.34/", "example.com")
 
     with patch("app.utils.safe_http.async_resolve_and_pin", side_effect=fake_pin), \
-         patch("app.utils.safe_http.httpx.AsyncClient", side_effect=MockClient):
+         patch("app.utils.safe_http.BoundedAsyncClient", side_effect=MockClient):
         response, err = await safe_fetch_http("https://example.com/", verify=False)
 
     assert response is not None, err

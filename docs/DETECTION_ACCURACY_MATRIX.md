@@ -119,6 +119,135 @@
 
 ---
 
+## 7. External Exposure: Web Security Configuration (4 detectors)
+
+| Detector | Evidence Required | Strong Signal | Weak Signal | Known FP Scenario | Mitigation | Confidence |
+|---|---|---|---|---|---|---|
+| **`exposure.cors.null_origin`** | `ACAO: null` received on request | Literal string `"null"` | — | Internal development mocking | Verified on live public response headers | high |
+| **`exposure.cors.wildcard_creds`** | `ACAO: *` AND `ACAC: true` | Both headers present | `ACAO: *` alone | Public CDN open APIs | Suppressed to Info if credentials flag is absent | high |
+| **`exposure.headers.missing_security`** | Absence of ≥4 core baseline headers (`HSTS`, `CSP`, `XFO`, `XCTO`) | Missing from headers dict | Partial coverage | Non-HTML API endpoints | Evaluated on target primary content response | high |
+| **`exposure.headers.server_tokens`** | Detailed runtime/OS disclosure in `Server` or `X-Powered-By` | `Server: Apache/2.4.41 (Ubuntu)`, `X-Powered-By: PHP/7.4.3` | `Server: cloudflare` | Obfuscated proxies | Verified against `_BENIGN_PREFIXES` allowlist | high |
+
+---
+
+## 8. External Exposure: Authentication & Session Security (4 detectors)
+
+| Detector | Evidence Required | Strong Signal | Weak Signal | Known FP Scenario | Mitigation | Confidence |
+|---|---|---|---|---|---|---|
+| **`exposure.auth.cookie_no_secure`** | `Set-Cookie` on HTTPS lacking `Secure` attribute | `Secure` token missing | — | Dev/testing HTTP sites | Only evaluated for HTTPS responses | high |
+| **`exposure.auth.cookie_no_httponly`** | `Set-Cookie` for session identifiers lacking `HttpOnly` | `session`, `auth`, `token`, `jwt` names | Non-session tracking cookies | Analytics cookies (`_ga`, `theme`) | Scoped to session-relevant cookie name patterns | high |
+| **`exposure.auth.cookie_no_samesite`** | `Set-Cookie` lacking `SameSite` attribute | `SameSite` token missing | — | Legacy browser targets | Flags absence of Lax/Strict/None enforcement | high |
+| **`exposure.auth.basic_over_http`** | `WWW-Authenticate: Basic` header on plaintext HTTP endpoint | Header present without TLS | — | Localhost testing | Enforced strictly on non-TLS endpoints | high |
+
+---
+
+## 9. External Exposure: API Exposure (4 detectors)
+
+| Detector | Evidence Required | Strong Signal | Weak Signal | Known FP Scenario | Mitigation | Confidence |
+|---|---|---|---|---|---|---|
+| **`exposure.api.openapi_exposed`** | HTTP 200 + valid JSON/YAML containing `openapi:` or `swagger:` | `"openapi": "3.0"` or `"swagger": "2.0"` | Generic JSON 200 | Soft-404 serving JSON error | Requires structural JSON key parsing + OpenAPI markers | high |
+| **`exposure.api.graphql_exposed`** | HTTP 200 + GraphQL introspection or schema keywords | `{"data": {"__schema": ...}}` | Generic 400 GraphQL error | Public query endpoint with introspection disabled | Requires affirmative GraphQL schema or Playground HTML | high |
+| **`exposure.api.debug_endpoint`** | HTTP 200 + debug dashboard keywords | `/debug/pprof`, `django-debug-toolbar` | `/health` endpoint | Standard orchestration `/health` checks | `/health` and `/ready` with status=UP explicitly allowed | high |
+| **`exposure.api.actuator_exposed`** | HTTP 200 + Spring Boot Actuator endpoints | `_links`, `jvm.memory.used`, `env` keys | `/actuator/health` | Public Actuator health check | Sensitive endpoints checked: `/actuator/env`, `/beans`, `/heapdump` | high |
+
+---
+
+## 10. External Exposure: JavaScript Secrets & Token Exposure (4 detectors)
+
+| Detector | Evidence Required | Strong Signal | Weak Signal | Known FP Scenario | Mitigation | Confidence |
+|---|---|---|---|---|---|---|
+| **`exposure.js.aws_keys`** | AWS access key pattern `AKIA[0-9A-Z]{16}` in client JS | Exact regex match | Generic 20-char alphanumeric | Example keys in documentation | High-entropy validation; redacted before reporting | high |
+| **`exposure.js.github_tokens`** | GitHub token pattern `ghp_[0-9a-zA-Z]{36}` in client JS | Exact prefix and format | — | Test fixtures in comments | Format-specific regex matching; redacted before reporting | high |
+| **`exposure.js.private_keys`** | RSA/EC/OPENSSH private key header block | `-----BEGIN (RSA\|EC\|OPENSSH\|PRIVATE) KEY-----` | Generic pem cert block | Public X.509 certificate | Distinct negative match on `CERTIFICATE` blocks | high |
+| **`exposure.js.generic_tokens`** | High-entropy authorization bearer or private API key tokens | High Shannon entropy + assignment | Generic string literals | Minified bundle variable names | Calibrated honestly: Medium confidence; token redacted | medium |
+
+---
+
+## 11. External Exposure: Source Map Exposure (3 detectors)
+
+| Detector | Evidence Required | Strong Signal | Weak Signal | Known FP Scenario | Mitigation | Confidence |
+|---|---|---|---|---|---|---|
+| **`exposure.sourcemap.map_file_accessible`** | HTTP 200 on `.js.map` file + valid JSON containing `sources` | `"version": 3, "sources": [...]` | HTTP 200 on random URL | Soft-404 serving HTML | Validates JSON parse and presence of `sources` array | high |
+| **`exposure.sourcemap.inline_sources`** | Valid `.map` file with `sourcesContent` array containing raw code | `"sourcesContent": ["const x = ..."]` | Empty sourcesContent | Minified source code | Verifies non-empty source files embedded in map | high |
+| **`exposure.sourcemap.source_code_leak`** | Referenced source maps publicly downloadable on CDN/origin | `//# sourceMappingURL=` resolves to 200 | Comment present, file 404 | Source maps hosted internally | SafeFetch probe validates public availability | high |
+
+---
+
+## 12. External Exposure: Sensitive Files & Backup Exposure (4 detectors)
+
+| Detector | Evidence Required | Strong Signal | Weak Signal | Known FP Scenario | Mitigation | Confidence |
+|---|---|---|---|---|---|---|
+| **`exposure.files.env_accessible`** | HTTP 200 + plaintext environment variables | ≥2 `KEY=VALUE` pairs (non-HTML) | Generic text response | Soft-404 returning homepage | Token overlap baseline comparison + HTML rejection | high |
+| **`exposure.files.git_accessible`** | HTTP 200 on `/.git/config` or `/.git/HEAD` | `[core]`, `repositoryformatversion` | Generic 200 response | Custom SPA 404 handler | Verifies Git repository configuration syntax | high |
+| **`exposure.files.backup_accessible`** | HTTP 200 + archive magic bytes or SQL dump syntax | `PK\x03\x04`, `CREATE TABLE` | `application/octet-stream` | Soft-404 serving empty binary | Magic byte header check + minimum size (>100 bytes) | high |
+| **`exposure.files.config_accessible`** | HTTP 200 on configuration endpoints (`web.config`, `config.json`) | Valid XML/JSON configuration keys | HTML error page | Soft-404 | Format validation + parser check | high |
+
+---
+
+## 13. External Exposure: Cloud Storage Exposure (4 detectors)
+
+| Detector | Evidence Required | Strong Signal | Weak Signal | Known FP Scenario | Mitigation | Confidence |
+|---|---|---|---|---|---|---|
+| **`exposure.cloud.s3_bucket_public`** | HTTP 200 on AWS S3 bucket endpoint | `<ListBucketResult>` XML root | 403 Forbidden | Authenticated or private S3 bucket | Verified via safe HTTP HEAD/GET; write operations forbidden | high |
+| **`exposure.cloud.gcs_bucket_public`** | HTTP 200 on GCP Cloud Storage bucket URL | XML/JSON bucket listing | 401/403 response | Private GCP bucket | Validates unauthenticated read response | high |
+| **`exposure.cloud.azure_blob_public`** | HTTP 200 on Azure Blob container URL | `<EnumerationResults>` XML | ResourceNotFound | Private container | Confirms unauthenticated XML container response | high |
+| **`exposure.cloud.bucket_listing`** | Public directory listing containing object keys and timestamps | `<Contents><Key>...</Key>` | AccessDenied | Private bucket root | Only reported when unauthenticated object listing is confirmed | high |
+
+---
+
+## 14. External Exposure: DNS Security Expansion (4 detectors)
+
+| Detector | Evidence Required | Strong Signal | Weak Signal | Known FP Scenario | Mitigation | Confidence |
+|---|---|---|---|---|---|---|
+| **`exposure.dns.spf_permissive`** | DNS TXT record containing `+all` or `?all` | Literal `+all` or `?all` mechanism | `~all` (softfail) | Intentional transition policy | `~all` explicitly allowed; flagged only on `+all`/`?all` | high |
+| **`exposure.dns.dmarc_missing`** | Absence of `_dmarc.<domain>` TXT record | NXDOMAIN or no TXT record | — | Non-mail sending domain | Cross-referenced with MX record presence | high |
+| **`exposure.dns.dmarc_none`** | DMARC record exists with `p=none` without reporting URIs | `p=none` without `rua=` or `ruf=` | `p=none` with active `rua=` | Initial monitoring phase | Flags absence of active enforcement and visibility | high |
+| **`exposure.dns.zone_transfer`** | Successful AXFR query response returning full DNS zone | Full zone response returned | REFUSED / NOTAUTH | Zone transfer restricted to primaries | Passive query only; AXFR attempt rejected by standard nameservers | high |
+
+---
+
+## 15. External Exposure: TLS Deep Analysis (4 detectors)
+
+| Detector | Evidence Required | Strong Signal | Weak Signal | Known FP Scenario | Mitigation | Confidence |
+|---|---|---|---|---|---|---|
+| **`exposure.tls.weak_version`** | Negotiated protocol is TLS 1.0 or TLS 1.1 | Python SSL negotiated protocol | Server supports but negotiates 1.3 | Legacy compatibility gateways | Direct socket handshake verifies negotiated protocol | high |
+| **`exposure.tls.weak_cipher`** | Negotiated cipher in known weak/deprecated blocklist | 3DES, RC4, NULL, EXPORT ciphers | CBC ciphers on TLS 1.2 | Custom cipher ordering | Evaluates actual negotiated cipher suite | high |
+| **`exposure.tls.cert_expired`** | Certificate `notAfter` date < current timestamp | Validated X.509 date | Self-signed cert | Timezone differences | Evaluates UTC timestamp comparison | high |
+| **`exposure.tls.ct_not_logged`** | Absence of Signed Certificate Timestamps (SCTs) in TLS/X.509 | No SCT extension in handshake or cert | — | Internal private CA | Honest caveat: checks extension presence, not public CT proofs | medium |
+
+---
+
+## 16. External Exposure: Mixed Content (3 detectors)
+
+| Detector | Evidence Required | Strong Signal | Weak Signal | Known FP Scenario | Mitigation | Confidence |
+|---|---|---|---|---|---|---|
+| **`exposure.mixed_content.script`** | `http://` script source on HTTPS page | `<script src="http://...">` | Relative URLs | Protocol-relative `//` | Evaluated strictly on `http://` scheme matches | high |
+| **`exposure.mixed_content.style`** | `http://` stylesheet link or `@import` on HTTPS page | `<link rel="stylesheet" href="http://...">` | CSS background URLs | Protocol-relative `//` | Evaluates link tags and CSS import statements | high |
+| **`exposure.mixed_content.form_action`** | `<form action="http://...">` on HTTPS page | Insecure form submission action | — | Form action to external non-sensitive site | Categorized as Medium severity; validates unencrypted data post | high |
+
+---
+
+## 17. External Exposure: Third-Party Dependency & SRI (3 detectors)
+
+| Detector | Evidence Required | Strong Signal | Weak Signal | Known FP Scenario | Mitigation | Confidence |
+|---|---|---|---|---|---|---|
+| **`exposure.dep.no_sri`** | External CDN `<script>` tag lacking `integrity` attribute | Third-party script without `integrity` | First-party script | In-house CDN on same root domain | Same-origin and first-party CDN hostnames excluded | medium |
+| **`exposure.dep.cdn_dependency`** | High reliance on untrusted or unpinned third-party CDNs | Multiple external CDN domains | Single trusted CDN (cdnjs) | High availability CDN | Evaluates total external script dependencies | medium |
+| **`exposure.dep.deprecated_lib`** | Detected semver version matches known end-of-life library | Angular 1.x, jQuery < 3.5.0 | Unversioned library | Backported vendor security patches | Notes vendor backport caveat; reports published CVEs | medium |
+
+---
+
+## 18. External Exposure: Web Cache & Sensitive Response Exposure (4 detectors)
+
+| Detector | Evidence Required | Strong Signal | Weak Signal | Known FP Scenario | Mitigation | Confidence |
+|---|---|---|---|---|---|---|
+| **`exposure.cache.missing_no_store`** | Sensitive endpoint response lacking `no-store` in `Cache-Control` | Auth/account endpoint with public cache | Static asset cache | Generic marketing pages | Scoped to authenticated, user-specific, or login endpoints | medium |
+| **`exposure.cache.public_sensitive`** | `Cache-Control: public` present on responses containing session data | `public` + `Set-Cookie` header | Static images | Cookie set on non-cached static resources | Evaluates combination of public caching and sensitive headers | high |
+| **`exposure.cache.unkeyed_header`** | Response reflects unkeyed client headers without proper `Vary` | Reflected header without `Vary` | Standard CDN Vary | Static content | Tests reflection of custom request headers | medium |
+| **`exposure.cache.authenticated_cache`** | Authenticated response cached without `private` or `no-store` | 200 with Auth + cacheable headers | Generic API response | Public unauthenticated API | Requires presence of authentication indicators | medium |
+
+---
+
 ## What Explicitly Does NOT Trigger Findings
 
 The following signals are present in the codebase as **commented-out** or **below-threshold** patterns, maintained as documentation of rejected FP sources:
