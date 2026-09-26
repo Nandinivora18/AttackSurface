@@ -17,6 +17,51 @@
 
 </div>
 
+<p align="center">
+  <code>82 Registered Detectors</code> &nbsp;•&nbsp;
+  <code>45 Exposure Detectors</code> &nbsp;•&nbsp;
+  <code>12 Exposure Domains</code> &nbsp;•&nbsp;
+  <code>Sentinel Intelligence</code><br>
+  <code>Circle to Sentinel</code> &nbsp;•&nbsp;
+  <code>CVE / EOL Intelligence</code> &nbsp;•&nbsp;
+  <code>Evidence-Based Findings</code> &nbsp;•&nbsp;
+  <code>Passive-First Scanning</code>
+</p>
+
+---
+
+## 🎥 See SentinelScan in Action
+
+Circle to Sentinel turns the SentinelScan interface itself into an interactive security investigation surface. Select any region of the dashboard and Sentinel Intelligence explains what you're seeing using the visible UI and security context.
+
+<p align="center">
+  <img src="docs/media/sentinelscan-demo.webp" width="900" alt="SentinelScan Live Platform Assessment & Verification Demo">
+</p>
+
+<p align="center">
+  <b>Circle to Sentinel</b><br>
+  Visual Security Intelligence for SentinelScan
+</p>
+
+<p align="center">
+  <a href="docs/media/CircleToSentinel.mp4">
+    <b>🎬 Watch the Full Circle to Sentinel Demo →</b>
+  </a>
+</p>
+
+<p align="center">
+  <b>Select</b> &nbsp;→&nbsp; <b>Analyze</b> &nbsp;→&nbsp; <b>Explain</b> &nbsp;→&nbsp; <b>Investigate</b><br>
+  Keyboard Shortcut: <code>Ctrl + Shift + S</code> &nbsp;|&nbsp; <code>Cmd + Shift + S</code>
+</p>
+
+### Circle to Sentinel
+
+- **Select any region of the SentinelScan UI**
+- **Capture the selected visual context**
+- **Analyze it with Sentinel Intelligence**
+- **Receive a grounded plain-English explanation**
+- **Continue asking follow-up security questions**
+
 ---
 
 ## 📌 Why SentinelScan?
@@ -60,21 +105,6 @@ SentinelScan solves this by providing a **controlled, non-destructive hybrid ass
 | 🔔 **In-App Notifications** | Per-user notification center with unread badge, dropdown panel, mark-as-read, and 15-second auto-refresh. |
 | 👤 **User Management** | Profile management, scan history browser, findings viewer, and dedicated admin panel. |
 | 🔐 **Account Flows** | Email verification, forgot/reset password, and Google OAuth 2.0 Single Sign-On. |
-
----
-
-## 🎥 Demo
-
-### SentinelScan Full Assessment & Verification
-
-![SentinelScan Live Demo](docs/media/sentinelscan-demo.webp)
-
-> Direct media path: [docs/media/sentinelscan-demo.webp](docs/media/sentinelscan-demo.webp)
-
-### Circle to Sentinel (Visual AI Interaction)
-
-Interactive multimodal security investigation demo recording (`Ctrl+Shift+S` / `Cmd+Shift+S`):  
-> Video recording: [docs/media/CircleToSentinel.mp4](docs/media/CircleToSentinel.mp4)
 
 ---
 
